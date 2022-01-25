@@ -1,0 +1,4 @@
+ir.c:24:16:calc_pulse	16	static
+ir.c:43:6:ir_tim_interrupt	16	static
+ir.c:79:6:ir_init	8	static
+ir.c:85:5:ir_read	16	static

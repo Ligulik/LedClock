@@ -1,0 +1,9 @@
+menu.c:25:5:TurnOnMenuMode	4	static
+menu.c:29:5:isInRange	16	static
+menu.c:37:5:isInRangeMinute	16	static
+menu.c:45:6:colorMenu	16	static
+menu.c:52:6:firstDigitHour	16	static
+menu.c:59:6:secondDigitHour	16	static
+menu.c:73:6:firstDigitMinute	16	static
+menu.c:81:6:secondDigitMinute	16	static
+menu.c:102:6:menu	40	static

@@ -1,0 +1,15 @@
+seven_segment_driver.c:46:6:changeColor	16	static
+seven_segment_driver.c:53:7:firstSegment	24	static
+seven_segment_driver.c:66:7:secondSegment	24	static
+seven_segment_driver.c:79:7:dwukropekTurnOn	8	static
+seven_segment_driver.c:88:7:dwukropekTurnOff	8	static
+seven_segment_driver.c:97:7:dwukropekStart	8	static
+seven_segment_driver.c:107:7:thirdSegment	24	static
+seven_segment_driver.c:120:7:fourthSegment	24	static
+seven_segment_driver.c:133:11:numberToMatrix	16	static
+seven_segment_driver.c:171:20:destroy	24	static
+seven_segment_driver.c:180:7:putMinutes	24	static
+seven_segment_driver.c:194:7:putHours	24	static
+seven_segment_driver.c:209:7:clockStart	40	static
+seven_segment_driver.c:225:7:setMinutes	40	static
+seven_segment_driver.c:237:7:setHours	40	static
