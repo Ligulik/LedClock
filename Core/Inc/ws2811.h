@@ -26,8 +26,8 @@ void ws2811_update(void);
 void ws2811_wait(void);
 
 // Zgaszenie wszystkich diod
-void ws2811_hourReset(void);
-void ws2811_minuteReset(void);
+void ws2811_hourDisplayReset(void);
+void ws2811_minuteDisplayReset(void);
 
 
 

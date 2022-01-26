@@ -65,7 +65,7 @@ void ws2811_init(void){
 
 }
 
-void ws2811_hourReset(void){
+void ws2811_hourDisplayReset(void){
 	int i;
 
 		// Wysłanie resetu:
@@ -86,7 +86,7 @@ void ws2811_hourReset(void){
 		ws2811_update();
 }
 
-void ws2811_minuteReset(void){
+void ws2811_minuteDisplayReset(void){
 	int i;
 
 		// Wysłanie resetu:

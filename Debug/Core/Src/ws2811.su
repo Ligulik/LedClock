@@ -1,7 +1,7 @@
 ws2811.c:29:13:set_byte	24	static
 ws2811.c:44:6:ws2811_init	16	static
-ws2811.c:68:6:ws2811_hourReset	16	static
-ws2811.c:89:6:ws2811_minuteReset	16	static
+ws2811.c:68:6:ws2811_hourDisplayReset	16	static
+ws2811.c:89:6:ws2811_minuteDisplayReset	16	static
 ws2811.c:110:6:ws2811_update	8	static
 ws2811.c:115:6:ws2811_wait	8	static
 ws2811.c:122:6:ws2811_set_color	16	static

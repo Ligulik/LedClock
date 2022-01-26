@@ -78,19 +78,35 @@ uint8_t* numberToMatrix(int number);
 
 //FUNKCJE DLA UZYTKOWNIKA:
 
-//	zmien kolor calego wyswietlacza:
+//	Kolory:
 void changeColor(struct colorRgb newColor);
+void mixColor();
+void backToColor();
+
 // wystartuj miganie dwukropka:
 void dwukropekStart(void);
+
+// Ustaw kropke
+void kropkaOn();
+
 //Wysteruj ledy godzinowe:
 void putHours(uint8_t hours);
 //Wysteruj ledy minutowe:
 void putMinutes(uint8_t minutes);
-// Wlacz zegar:
-void clockStart(void);
+
+// Wlacz pełne wyswietlanie:
+void fullDisplayStart(void);
 
 void setHours(uint8_t);
 void setMinutes(uint8_t);
+
+
+// DATY
+
+
+void dateOnDisplay();
+void putDay(uint8_t day);
+void putMonth(uint8_t month);
 
 
 #endif /* INC_SEVEN_SEGMENT_DRIVER_H_ */

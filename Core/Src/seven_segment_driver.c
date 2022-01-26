@@ -28,6 +28,8 @@ flag volatile doubleDot=0;
 
 
 struct colorRgb actualColor;
+struct colorRgb colorInMemory;
+
 struct colorRgb RED={255,0,0};
 struct colorRgb GREEN={0,255,0};
 struct colorRgb BLUE={0,0,255};
@@ -42,12 +44,32 @@ struct colorRgb NONE={0,0,0};
 
 
 
+// Zmiana koloru na zawolanie
+void changeColor(struct colorRgb newColor) {
+	actualColor.blue = newColor.blue;
+	actualColor.red = newColor.red;
+	actualColor.green = newColor.green;
+}
 
-void changeColor(struct colorRgb newColor){
-		actualColor.blue=newColor.blue;
-		actualColor.red=newColor.red;
-		actualColor.green=newColor.green;
-	}
+void mixColor() {
+	// Zapisanie koloru biezacego do pamieci
+	colorInMemory.blue = actualColor.red;
+	colorInMemory.red = actualColor.green;
+	colorInMemory.green = actualColor.blue;
+	// Wymieszanie koloru
+	actualColor.blue = actualColor.red;
+	actualColor.red = actualColor.green;
+	actualColor.green = actualColor.blue;
+}
+
+// Powrot do koloru z pamieci
+void backToColor() {
+	actualColor.blue = colorInMemory.blue;
+	actualColor.red = colorInMemory.red;
+	actualColor.green = colorInMemory.green;
+}
+
+
 
 
 	void firstSegment(uint8_t number[]) {
@@ -92,6 +114,11 @@ void changeColor(struct colorRgb newColor){
 		ws2811_update();
 		doubleDot=1;
 }
+
+	void kropkaOn(){
+		ws2811_set_color(29,  actualColor.green, actualColor.red, actualColor.blue);
+		ws2811_update();
+	}
 
 
 	void dwukropekStart(void){
@@ -206,7 +233,17 @@ void changeColor(struct colorRgb newColor){
 	}
 
 
-	void clockStart(){
+	void putMonth(uint8_t month){
+		putHours(month);
+	}
+
+
+	void putDay(uint8_t day){
+		putMinutes(day);
+	}
+
+
+	void fullDisplayStart(){
 
 		RTC_TimeTypeDef time = {0};
 		RTC_DateTypeDef date = {0};
@@ -222,6 +259,21 @@ void changeColor(struct colorRgb newColor){
 		ws2811_update();
 	}
 
+	void dateOnDisplay(){
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
+
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+	uint8_t month = date.Month;
+	uint8_t day = date.Date;
+
+	putMonth(month);
+	putDay(day);
+	ws2811_update();
+	}
+
 	void setMinutes(uint8_t minute){
 		RTC_TimeTypeDef time = {0};
 		RTC_DateTypeDef date = {0};
@@ -230,6 +282,7 @@ void changeColor(struct colorRgb newColor){
 		HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
 		time.Minutes=minute;
+		time.Seconds=0;
 
 		HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
 	}
@@ -242,6 +295,7 @@ void changeColor(struct colorRgb newColor){
 			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
 			time.Hours=hours;
+			time.Seconds=0;
 
 			HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
 		}

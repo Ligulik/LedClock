@@ -43,6 +43,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+#define DATA_SHOW_PERIOD 30
+#define DATA_SHOW_DURATION (DATA_SHOW_PERIOD-4)
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -53,8 +57,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-int flag_TurnOnMenuModeHour=1;
-int flag_TurnOnMenuModeMinute=1;
+int flag_TurnOnMenuModeHour=0;
+int flag_TurnOnMenuModeMinute=0;
+int flag_showCalendar=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -84,7 +89,7 @@ static void MX_NVIC_Init(void);
 
 // Funtions rewrite;
 
-
+// Printf dla USART
 int __io_putchar(int ch)
 {
   if (ch == '\n') {
@@ -103,41 +108,29 @@ int __io_putchar(int ch)
 
 // Callbacks from interrupts
 
+
+// Przerwanie od RTC
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc) {
 
 
-	if (TurnOnMenuMode() == MENU_TIME_LEVEL || TurnOnMenuMode()==MENU_TIME_HOUR_SECOND_DIGIT) {
-
-
-			if (flag_TurnOnMenuModeHour == 1) {
-				ws2811_hourReset();
-				flag_TurnOnMenuModeHour = 0;
-			} else {
-				clockStart();
-				flag_TurnOnMenuModeHour = 1;
-			}
-
-
-
-	}else if(TurnOnMenuMode()==MENU_TIME_MINUTE_LEVEL || TurnOnMenuMode()==MENU_TIME_MINUTE_SECOND_DIGIT){
-		if (flag_TurnOnMenuModeMinute == 1) {
-						ws2811_minuteReset();
-						flag_TurnOnMenuModeMinute = 0;
-					} else {
-						clockStart();
-						flag_TurnOnMenuModeMinute = 1;
-					}
-	}
-	else {
+	if(TurnOnMenuMode()==MENU_OFF && flag_showCalendar<DATA_SHOW_DURATION){
 		dwukropekStart();
+		}else{
+
+		}
+
+	flag_showCalendar += 1;
+	if (flag_showCalendar > DATA_SHOW_PERIOD) {
+		flag_showCalendar = 0;
 	}
+
 
 }
 
 
 
 
-
+// Przerwanie pobudzane przez pilot
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 
 
@@ -145,12 +138,45 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 	    switch (HAL_TIM_GetActiveChannel(&htim2)) {
 	      case HAL_TIM_ACTIVE_CHANNEL_1:
 	        ir_tim_interrupt();
+	        HAL_TIM_Base_Start_IT(&htim6);
 	        break;
 	      default:
 	        break;
 		}
 	}
 }
+
+
+// Przerwanie od licznika 6, wywoływane co pół sekundy
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+
+	if (htim == &htim6) {
+		if (TurnOnMenuMode() == MENU_TIME_LEVEL
+				|| TurnOnMenuMode() == MENU_TIME_HOUR_SECOND_DIGIT) {
+
+			if (flag_TurnOnMenuModeHour == 1) {
+				ws2811_hourDisplayReset();
+				flag_TurnOnMenuModeHour = 0;
+			} else {
+				fullDisplayStart();
+				flag_TurnOnMenuModeHour = 1;
+			}
+
+		} else if (TurnOnMenuMode() == MENU_TIME_MINUTE_LEVEL
+				|| TurnOnMenuMode() == MENU_TIME_MINUTE_SECOND_DIGIT) {
+			if (flag_TurnOnMenuModeMinute == 1) {
+				ws2811_minuteDisplayReset();
+				flag_TurnOnMenuModeMinute = 0;
+			} else {
+				fullDisplayStart();
+				flag_TurnOnMenuModeMinute = 1;
+			}
+		} else {
+
+		}
+	}
+}
+
 
 
 
@@ -189,6 +215,7 @@ int main(void)
   MX_RTC_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
+  MX_TIM6_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -205,6 +232,7 @@ int main(void)
 
 
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -214,9 +242,24 @@ int main(void)
 
 	while (1) {
 
-				// ZEGAR:
-				if(TurnOnMenuMode()==0){
-					clockStart();
+
+
+		// ZEGAR:
+				if(TurnOnMenuMode()==0 && flag_showCalendar<DATA_SHOW_DURATION){
+					if(flag_showCalendar==0){
+						dwukropekTurnOn();
+						// Zapobieganie migotaniu
+						flag_showCalendar+=1;
+					}
+					fullDisplayStart();
+				}else if(TurnOnMenuMode()==0){
+					if(flag_showCalendar==DATA_SHOW_DURATION){
+						dwukropekTurnOff();
+						// Zapobieganie migotaniu
+						flag_showCalendar=DATA_SHOW_DURATION+1;
+					}
+					kropkaOn();
+					dateOnDisplay();
 				}
 
 
@@ -301,11 +344,14 @@ void SystemClock_Config(void)
 static void MX_NVIC_Init(void)
 {
   /* RTC_Alarm_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 3, 0);
+  HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 4, 0);
   HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
   /* TIM2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(TIM2_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(TIM2_IRQn);
+  /* TIM6_DAC_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
 }
 
 /* USER CODE BEGIN 4 */
