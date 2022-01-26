@@ -49,17 +49,21 @@ void changeColor(struct colorRgb newColor) {
 	actualColor.blue = newColor.blue;
 	actualColor.red = newColor.red;
 	actualColor.green = newColor.green;
+
+	colorInMemory.blue = newColor.blue;
+	colorInMemory.red = newColor.red;
+	colorInMemory.green = newColor.green;
+
 }
 
 void mixColor() {
-	// Zapisanie koloru biezacego do pamieci
-	colorInMemory.blue = actualColor.red;
-	colorInMemory.red = actualColor.green;
-	colorInMemory.green = actualColor.blue;
 	// Wymieszanie koloru
+	struct colorRgb temp;
+	temp.blue=actualColor.blue;
+
 	actualColor.blue = actualColor.red;
 	actualColor.red = actualColor.green;
-	actualColor.green = actualColor.blue;
+	actualColor.green = temp.blue;
 }
 
 // Powrot do koloru z pamieci
@@ -116,7 +120,7 @@ void backToColor() {
 }
 
 	void kropkaOn(){
-		ws2811_set_color(29,  actualColor.green, actualColor.red, actualColor.blue);
+		ws2811_set_color(29,  actualColor.red, actualColor.green, actualColor.blue);
 		ws2811_update();
 	}
 

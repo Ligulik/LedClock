@@ -44,7 +44,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DATA_SHOW_PERIOD 30
+#define DATA_SHOW_PERIOD 15
 #define DATA_SHOW_DURATION (DATA_SHOW_PERIOD-4)
 
 /* USER CODE END PD */
@@ -245,31 +245,34 @@ int main(void)
 
 
 		// ZEGAR:
-				if(TurnOnMenuMode()==0 && flag_showCalendar<DATA_SHOW_DURATION){
-					if(flag_showCalendar==0){
-						dwukropekTurnOn();
-						// Zapobieganie migotaniu
-						flag_showCalendar+=1;
-					}
-					fullDisplayStart();
-				}else if(TurnOnMenuMode()==0){
-					if(flag_showCalendar==DATA_SHOW_DURATION){
-						dwukropekTurnOff();
-						// Zapobieganie migotaniu
-						flag_showCalendar=DATA_SHOW_DURATION+1;
-					}
-					kropkaOn();
-					dateOnDisplay();
-				}
 
+		// NORMALNA PRACA
+		if (TurnOnMenuMode() == 0 && flag_showCalendar < DATA_SHOW_DURATION) {
+			if (flag_showCalendar == 0) {
+				backToColor();
+				dwukropekTurnOn();
+				//Zapobieganie migotaniu
+				flag_showCalendar += 1;
+			}
+			fullDisplayStart();
+		}
 
+		// WYSWIETLANIE DATY
+		else if (TurnOnMenuMode() == 0) {
+			if (flag_showCalendar == DATA_SHOW_DURATION) {
+				dwukropekTurnOff();
+				// Zapobieganie migotaniu
+				flag_showCalendar = DATA_SHOW_DURATION + 1;
+				mixColor();
+			}
+			kropkaOn();
+			dateOnDisplay();
+		}
 
-				int value=ir_read();
-				if(value!=-1){
-					menu(value);
-				}
-
-
+		int value = ir_read();
+		if (value != -1) {
+			menu(value);
+		}
 
 	}
 
