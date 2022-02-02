@@ -1,0 +1,2 @@
+temperature_sensor.c:12:8:Thermister	24	static
+temperature_sensor.c:24:8:temperatureMeasure	24	static

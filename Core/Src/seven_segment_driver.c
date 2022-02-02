@@ -9,6 +9,7 @@
 #include "tim.h"
 #include "rtc.h"
 #include "seven_segment_driver.h"
+#include "temperature_sensor.h"
 
 uint8_t zero[12] = { 0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13 };
 uint8_t one[4] = { 4, 5, 12, 13 };
@@ -20,26 +21,21 @@ uint8_t six[12] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 uint8_t seven[6] = { 4, 5, 10, 11, 12, 13 };
 uint8_t eight[14] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 uint8_t nine[12] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+uint8_t noDigit[1]={20};
 
-
-
-
-flag volatile doubleDot=0;
-
+flag volatile doubleDot = 0;
 
 struct colorRgb actualColor;
 struct colorRgb colorInMemory;
 
-struct colorRgb RED={255,0,0};
-struct colorRgb GREEN={0,255,0};
-struct colorRgb BLUE={0,0,255};
-struct colorRgb YELLOW={255,255,0};
-struct colorRgb PINK={255,0,255};
-struct colorRgb PEACH_PUFF={255,228,185};
-struct colorRgb NONE={0,0,0};
 
-
-
+struct colorRgb RED = { 255, 0, 0 };
+struct colorRgb GREEN = { 0, 255, 0 };
+struct colorRgb BLUE = { 0, 0, 255 };
+struct colorRgb YELLOW = { 255, 255, 0 };
+struct colorRgb PINK = { 255, 0, 255 };
+struct colorRgb PEACH_PUFF = { 255, 228, 185 };
+struct colorRgb NONE = { 0, 0, 0 };
 
 
 
@@ -59,7 +55,7 @@ void changeColor(struct colorRgb newColor) {
 void mixColor() {
 	// Wymieszanie koloru
 	struct colorRgb temp;
-	temp.blue=actualColor.blue;
+	temp.blue = actualColor.blue;
 
 	actualColor.blue = actualColor.red;
 	actualColor.red = actualColor.green;
@@ -73,184 +69,237 @@ void backToColor() {
 	actualColor.green = colorInMemory.green;
 }
 
+void firstSegment(uint8_t number[]) {
+	uint8_t x = 0;
+	for (int i = 0; i <= 13; i++) {
 
-
-
-	void firstSegment(uint8_t number[]) {
-		uint8_t x = 0;
-		for (int i = 0; i <= 13; i++) {
-
-			if (number[x] == i) {
-				ws2811_set_color(i, actualColor.red, actualColor.green, actualColor.blue);
-				x++;
-			} else {
-				ws2811_set_color(i, 0, 0, 0);
-			}
+		if (number[x] == i) {
+			ws2811_set_color(i, actualColor.red, actualColor.green,
+					actualColor.blue);
+			x++;
+		} else {
+			ws2811_set_color(i, 0, 0, 0);
 		}
 	}
-
-	void secondSegment(uint8_t number[]) {
-		uint8_t x = 0;
-		for (int i = 14; i <= 27; i++) {
-
-			if (number[x] == i - 14) {
-				ws2811_set_color(i,actualColor.red, actualColor.green, actualColor.blue);
-				x++;
-			} else {
-				ws2811_set_color(i, 0, 0, 0);
-			}
-		}
-	}
-
-	void dwukropekTurnOn() {
-
-		ws2811_set_color(28,  actualColor.red, actualColor.green, actualColor.blue);
-		ws2811_set_color(29,  actualColor.red, actualColor.green, actualColor.blue);
-		ws2811_update();
-		doubleDot=0;
-
-	}
-
-	void dwukropekTurnOff() {
-
-		ws2811_set_color(28, 0, 0, 0);
-		ws2811_set_color(29, 0, 0, 0);
-		ws2811_update();
-		doubleDot=1;
 }
 
-	void kropkaOn(){
-		ws2811_set_color(29,  actualColor.red, actualColor.green, actualColor.blue);
-		ws2811_update();
-	}
+void secondSegment(uint8_t number[]) {
+	uint8_t x = 0;
+	for (int i = 14; i <= 27; i++) {
 
-
-	void dwukropekStart(void){
-		if (doubleDot == 1) {
-					dwukropekTurnOn();
-					//HAL_Delay(1000);
-				} else {
-					dwukropekTurnOff();
-					//HAL_Delay(1000);
-				}
-	}
-
-	void thirdSegment(uint8_t number[]) {
-		uint8_t x = 0;
-		for (int i = 30; i <= 43; i++) {
-
-			if (number[x] == i - 30) {
-				ws2811_set_color(i, actualColor.red, actualColor.green, actualColor.blue);
-				x++;
-			} else {
-				ws2811_set_color(i, 0, 0, 0);
-			}
-		}
-	}
-
-	void fourthSegment(uint8_t number[]) {
-		uint8_t x = 0;
-		for (int i = 44; i <= 57; i++) {
-
-			if (number[x] == i - 44) {
-				ws2811_set_color(i, actualColor.red, actualColor.green, actualColor.blue);
-				x++;
-			} else {
-				ws2811_set_color(i, 0, 0, 0);
-			}
-		}
-	}
-
-	uint8_t* numberToMatrix(int number) {
-		switch (number) {
-		case 0:
-			return zero;
-			break;
-		case 1:
-			return one;
-			break;
-		case 2:
-			return two;
-			break;
-		case 3:
-			return three;
-			break;
-		case 4:
-			return four;
-			break;
-		case 5:
-			return five;
-			break;
-		case 6:
-			return six;
-			break;
-		case 7:
-			return seven;
-			break;
-		case 8:
-			return eight;
-			break;
-		case 9:
-			return nine;
-			break;
-		default:
-			return 0;
-		}
-
-	}
-
-	struct manyNumber destroy(uint8_t numberToDestroy) {
-
-		struct manyNumber temp;
-
-		temp.firstNumber = numberToDestroy / 10;
-		temp.secondNumber = numberToDestroy % 10;
-		return temp;
-	}
-
-	void putMinutes(uint8_t minutes) {
-		if (minutes <= 9) {
-			thirdSegment(zero);
-			if (minutes == 0) {
-				fourthSegment(zero);
-			} else
-				fourthSegment(numberToMatrix(minutes));
+		if (number[x] == i - 14) {
+			ws2811_set_color(i, actualColor.red, actualColor.green,
+					actualColor.blue);
+			x++;
 		} else {
-			struct manyNumber temp = destroy(minutes);
-			thirdSegment(numberToMatrix(temp.firstNumber));
-			fourthSegment(numberToMatrix(temp.secondNumber));
+			ws2811_set_color(i, 0, 0, 0);
 		}
 	}
+}
 
-	void putHours(uint8_t hours) {
-		if (hours <= 9) {
+void dwukropekTurnOn() {
+
+	ws2811_set_color(28, actualColor.red, actualColor.green, actualColor.blue);
+	ws2811_set_color(29, actualColor.red, actualColor.green, actualColor.blue);
+	ws2811_update();
+	doubleDot = 0;
+
+}
+
+void dwukropekTurnOff() {
+
+	ws2811_set_color(28, 0, 0, 0);
+	ws2811_set_color(29, 0, 0, 0);
+	ws2811_update();
+	doubleDot = 1;
+}
+// 51 52 53 54 55 56
+void kropkaOn() {
+	ws2811_set_color(28, 0, 0, 0);
+	ws2811_set_color(29, actualColor.red, actualColor.green, actualColor.blue);
+	ws2811_update();
+}
+
+void celsiusMark(){
+	uint32_t i;
+	for(i=50;i<=55;i++){
+		ws2811_set_color(i, actualColor.red, actualColor.green, actualColor.blue);
+	}
+	ws2811_update();
+}
+
+void dwukropekStart(void) {
+	if (doubleDot == 1) {
+		dwukropekTurnOn();
+		//HAL_Delay(1000);
+	} else {
+		dwukropekTurnOff();
+		//HAL_Delay(1000);
+	}
+}
+
+void thirdSegment(uint8_t number[]) {
+	uint8_t x = 0;
+	for (int i = 30; i <= 43; i++) {
+
+		if (number[x] == i - 30) {
+			ws2811_set_color(i, actualColor.red, actualColor.green,
+					actualColor.blue);
+			x++;
+		} else {
+			ws2811_set_color(i, 0, 0, 0);
+		}
+	}
+}
+
+void fourthSegment(uint8_t number[]) {
+	uint8_t x = 0;
+	for (int i = 44; i <= 57; i++) {
+
+		if (number[x] == i - 44) {
+			ws2811_set_color(i, actualColor.red, actualColor.green,
+					actualColor.blue);
+			x++;
+		} else {
+			ws2811_set_color(i, 0, 0, 0);
+		}
+	}
+}
+
+uint8_t* numberToMatrix(int number) {
+	switch (number) {
+	case 0:
+		return zero;
+		break;
+	case 1:
+		return one;
+		break;
+	case 2:
+		return two;
+		break;
+	case 3:
+		return three;
+		break;
+	case 4:
+		return four;
+		break;
+	case 5:
+		return five;
+		break;
+	case 6:
+		return six;
+		break;
+	case 7:
+		return seven;
+		break;
+	case 8:
+		return eight;
+		break;
+	case 9:
+		return nine;
+		break;
+	default:
+		return 0;
+	}
+
+}
+
+struct manyNumber destroy(uint8_t numberToDestroy) {
+
+	struct manyNumber temp;
+
+	temp.firstNumber = numberToDestroy / 10;
+	temp.secondNumber = numberToDestroy % 10;
+	return temp;
+}
+
+
+struct manyNumberCelcius destoryCelcius(){
+	struct manyNumberCelcius temp;
+	double temp1Temperature=temperatureMeasure();
+	int tempTemperature = (int)temperatureMeasure();
+	double temp2Temperature;
+	int temp3Temperature;
+
+	temp.firstNumber=tempTemperature/10;
+	temp.secondNumber=tempTemperature%10;
+	temp2Temperature=temp1Temperature-tempTemperature;
+	temp2Temperature=temp2Temperature*10;
+	temp3Temperature=(int)temp2Temperature%10;
+	// Zaokraglenie liczby po przecinku
+	if(temp3Temperature<5){
+		temp.numberAfterPoint=0;
+	}else{
+		temp.numberAfterPoint=5;
+	}
+
+	return temp;
+}
+
+
+
+void putMinutes(uint8_t minutes) {
+	if (minutes <= 9) {
+		thirdSegment(zero);
+		if (minutes == 0) {
+			fourthSegment(zero);
+		} else
+			fourthSegment(numberToMatrix(minutes));
+	} else {
+		struct manyNumber temp = destroy(minutes);
+		thirdSegment(numberToMatrix(temp.firstNumber));
+		fourthSegment(numberToMatrix(temp.secondNumber));
+	}
+}
+
+void putHours(uint8_t hours, int isMenuOn) {
+	if (hours <= 9) {
+
+		if(isMenuOn==MENU_ON){
 			firstSegment(zero);
-			if (hours == 0) {
-				secondSegment(zero);
-			} else
-				secondSegment(numberToMatrix(hours));
-		} else {
-			struct manyNumber temp = destroy(hours);
-			firstSegment(numberToMatrix(temp.firstNumber));
-			secondSegment(numberToMatrix(temp.secondNumber));
+		}else if(isMenuOn==MENU_OFF){
+			firstSegment(noDigit);
 		}
+
+		if (hours == 0) {
+			secondSegment(zero);
+		} else
+			secondSegment(numberToMatrix(hours));
+	} else {
+		struct manyNumber temp = destroy(hours);
+		firstSegment(numberToMatrix(temp.firstNumber));
+		secondSegment(numberToMatrix(temp.secondNumber));
 	}
+}
 
+void putMonth(uint8_t month) {
+	putMinutes(month);
+}
 
-	void putMonth(uint8_t month){
-		putHours(month);
-	}
+void putDay(uint8_t day) {
+	putHours(day,MENU_ON);
+}
 
+// bez pierwszej cyfry godziny
+void normalDisplayStart() {
 
-	void putDay(uint8_t day){
-		putMinutes(day);
-	}
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
 
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
-	void fullDisplayStart(){
+	uint8_t hours = time.Hours;
+	uint8_t minutes = time.Minutes;
 
-		RTC_TimeTypeDef time = {0};
-		RTC_DateTypeDef date = {0};
+	putHours(hours,MENU_OFF);
+	putMinutes(minutes);
+	ws2811_update();
+}
+
+void menuDisplayStart(){
+	RTC_TimeTypeDef time = { 0 };
+		RTC_DateTypeDef date = { 0 };
 
 		HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
@@ -258,12 +307,14 @@ void backToColor() {
 		uint8_t hours = time.Hours;
 		uint8_t minutes = time.Minutes;
 
-		putHours(hours);
+		putHours(hours,MENU_ON);
 		putMinutes(minutes);
 		ws2811_update();
-	}
+}
 
-	void dateOnDisplay(){
+
+
+void dateOnDisplay() {
 	RTC_TimeTypeDef time = { 0 };
 	RTC_DateTypeDef date = { 0 };
 
@@ -276,30 +327,67 @@ void backToColor() {
 	putMonth(month);
 	putDay(day);
 	ws2811_update();
-	}
+}
 
-	void setMinutes(uint8_t minute){
-		RTC_TimeTypeDef time = {0};
-		RTC_DateTypeDef date = {0};
+void temperatureOnDisplay(){
+	struct manyNumberCelcius result = destoryCelcius();
 
-		HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
-		HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+	firstSegment(numberToMatrix(result.firstNumber));
+	secondSegment(numberToMatrix(result.secondNumber));
+	thirdSegment(numberToMatrix(result.numberAfterPoint));
+	celsiusMark();
+	ws2811_update();
+}
 
-		time.Minutes=minute;
-		time.Seconds=0;
+void setMinutes(uint8_t minute) {
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
 
-		HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-	}
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
-	void setHours(uint8_t hours){
-			RTC_TimeTypeDef time = {0};
-			RTC_DateTypeDef date = {0};
+	time.Minutes = minute;
+	time.Seconds = 0;
 
-			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
-			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+	HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+}
 
-			time.Hours=hours;
-			time.Seconds=0;
+void setHours(uint8_t hours) {
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
 
-			HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-		}
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+	time.Hours = hours;
+	time.Seconds = 0;
+
+	HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+}
+
+// DATA
+
+void setMonth(uint8_t month) {
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
+
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+	date.Month = month;
+
+	HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+}
+
+void setDay(uint8_t day) {
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
+
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+	date.Date = day;
+
+	HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+}
+

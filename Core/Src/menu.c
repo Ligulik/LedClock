@@ -16,6 +16,8 @@ int flagColor=0;
 int flagMenu=0;
 uint8_t minutesChange=0;
 uint8_t hoursChange=0;
+uint8_t dayChange=0;
+uint8_t monthChange=0;
 
 
 
@@ -26,7 +28,10 @@ int TurnOnMenuMode(void){
 	return flagMenu;
 }
 
-int isInRange(uint8_t entryData){
+
+// Testy:
+
+int isInRangeHours(uint8_t entryData){
 	if(entryData>23){
 		return 1;
 	}else{
@@ -42,12 +47,35 @@ int isInRangeMinute(uint8_t entryData){
 	}
 }
 
+
+int isInRangeMonth(uint8_t entryData){
+	if(entryData>12){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+
+int isInRangeDay(uint8_t entryData){
+	if(entryData>31){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+
 void colorMenu(struct colorRgb color){
 	if (flagColor == MENU_COLOR_LEVEL) {
 				changeColor(color);
 				flagColor = MENU_OFF;
 			}
 }
+
+
+// GODZINA
+
 
 void firstDigitHour(uint8_t forAdd){
 	if (flagMenu == MENU_TIME_LEVEL) {
@@ -61,7 +89,7 @@ void secondDigitHour(uint8_t forAdd){
 
 		hoursChange += forAdd;
 
-		if (isInRange(hoursChange)) {
+		if (isInRangeHours(hoursChange)) {
 			hoursChange = 0;
 		}
 
@@ -89,6 +117,56 @@ void secondDigitMinute(uint8_t forAdd){
 		flagMenu = MENU_TIME_MINUTE_LEVEL;
 	}
 }
+
+
+// DATA
+
+
+void firstDigitMonth(uint8_t forAdd){
+	if (flagMenu == MENU_DATE_LEVEL) {
+		monthChange = forAdd;
+		flagMenu = MENU_DATE_MONTH_SECOND_DIGIT;
+	}
+}
+
+
+void secondDigitMonth(uint8_t forAdd){
+	if (flagMenu == MENU_DATE_MONTH_SECOND_DIGIT) {
+
+		monthChange += forAdd;
+
+		if (isInRangeMonth(monthChange)) {
+			monthChange = 0;
+		}
+
+		setMonth(monthChange);
+		flagMenu = MENU_DATE_LEVEL;
+	}
+}
+
+
+void firstDigitDay(uint8_t forAdd){
+	if (flagMenu == MENU_DATE_DAY_FIRST_DIGIT) {
+		dayChange = forAdd;
+		flagMenu = MENU_DATE_DAY_SECOND_DIGIT;
+
+	}
+}
+
+
+void secondDigitDay(uint8_t forAdd){
+	if (flagMenu == MENU_DATE_DAY_SECOND_DIGIT) {
+		dayChange += forAdd;
+
+		if (isInRangeDay(dayChange)) {
+			dayChange = 0;
+		}
+		setDay(dayChange);
+		flagMenu = MENU_DATE_DAY_FIRST_DIGIT;
+	}
+}
+
+
 
 
 
@@ -142,22 +220,42 @@ void menu(int value) {
 
 
 	case IR_CODE_MENU:
-		flagMenu=MENU_TIME_LEVEL;
+		if(flagMenu==MENU_TIME_LEVEL || flagMenu==MENU_TIME_MINUTE_LEVEL || flagMenu==MENU_TIME_MINUTE_SECOND_DIGIT){
+			mixColor();
+			flagMenu=MENU_DATE_DAY_FIRST_DIGIT;
+		}else{
+			backToColor();
+			flagMenu=MENU_TIME_LEVEL;
+			}
+
 		break;
 
+
 	case IR_CODE_PLAY:
+		backToColor();
 		flagMenu=MENU_OFF;
 		break;
 
+
 	case IR_CODE_FORWARD:
-		if(flagMenu==MENU_TIME_LEVEL || MENU_TIME_HOUR_SECOND_DIGIT){
-			flagMenu=MENU_TIME_MINUTE_LEVEL;
+		if (flagMenu == MENU_TIME_LEVEL
+				|| flagMenu == MENU_TIME_HOUR_SECOND_DIGIT) {
+			flagMenu = MENU_TIME_MINUTE_LEVEL;
+		}
+		if (flagMenu == MENU_DATE_DAY_FIRST_DIGIT
+				|| flagMenu == MENU_DATE_DAY_SECOND_DIGIT) {
+			flagMenu = MENU_DATE_LEVEL;
 		}
 		break;
 
 	case IR_CODE_REWIND:
-		if(flagMenu==MENU_TIME_MINUTE_LEVEL|| MENU_TIME_MINUTE_SECOND_DIGIT){
-			flagMenu=MENU_TIME_LEVEL;
+		if (flagMenu == MENU_TIME_MINUTE_LEVEL
+				|| flagMenu == MENU_TIME_MINUTE_SECOND_DIGIT) {
+			flagMenu = MENU_TIME_LEVEL;
+		}
+		if (flagMenu == MENU_DATE_LEVEL
+				|| flagMenu == MENU_DATE_MONTH_SECOND_DIGIT) {
+			flagMenu = MENU_DATE_DAY_FIRST_DIGIT;
 		}
 		break;
 
@@ -187,6 +285,17 @@ void menu(int value) {
 		firstDigitMinute(10);
 
 
+
+		// SECOND DIGIT MONTH
+		secondDigitMonth(1);
+		// FIRST DIGIT MONTH
+		firstDigitMonth(10);
+		// SECOND DIGIT DAY
+		secondDigitDay(1);
+		// FIRST DIGIT DAY
+		firstDigitDay(10);
+
+
 		break;
 
 
@@ -209,6 +318,16 @@ void menu(int value) {
 		// FIRST DIGIT MINUTE
 		firstDigitMinute(20);
 
+
+		// SECOND DIGIT MONTH
+		secondDigitMonth(2);
+		// FIRST DIGIT MONTH
+		// NULL
+		// SECOND DIGIT DAY
+		secondDigitDay(2);
+		// FIRST DIGIT DAY
+		firstDigitDay(20);
+
 		break;
 
 
@@ -230,6 +349,17 @@ void menu(int value) {
 
 		// FIRST DIGIT MINUTE
 		firstDigitMinute(30);
+
+
+		// SECOND DIGIT MONTH
+		secondDigitMonth(3);
+		// FIRST DIGIT MONTH
+		// NULL
+		// SECOND DIGIT DAY
+		secondDigitDay(3);
+		// FIRST DIGIT DAY
+		firstDigitDay(30);
+
 		break;
 
 
@@ -252,6 +382,17 @@ void menu(int value) {
 
 		// FIRST DIGIT MINUTE
 		firstDigitMinute(40);
+
+		// SECOND DIGIT MONTH
+		secondDigitMonth(4);
+		// FIRST DIGIT MONTH
+		// NULL
+		// SECOND DIGIT DAY
+		secondDigitDay(4);
+		// FIRST DIGIT DAY
+		// NULL
+
+
 		break;
 
 
@@ -273,6 +414,16 @@ void menu(int value) {
 
 		// FIRST DIGIT MINUTE
 		firstDigitMinute(50);
+
+
+		// SECOND DIGIT MONTH
+		secondDigitMonth(5);
+		// FIRST DIGIT MONTH
+		// NULL
+		// SECOND DIGIT DAY
+		secondDigitDay(5);
+		// FIRST DIGIT DAY
+		// NULL
 
 
 		break;
@@ -298,6 +449,16 @@ void menu(int value) {
 
 		// NULL
 
+
+		// SECOND DIGIT MONTH
+		secondDigitMonth(6);
+		// FIRST DIGIT MONTH
+		// NULL
+		// SECOND DIGIT DAY
+		secondDigitDay(6);
+		// FIRST DIGIT DAY
+		// NULL
+
 		break;
 
 	case IR_CODE_7:
@@ -320,6 +481,15 @@ void menu(int value) {
 
 		// NULL
 
+		// SECOND DIGIT MONTH
+		secondDigitMonth(7);
+		// FIRST DIGIT MONTH
+		// NULL
+		// SECOND DIGIT DAY
+		secondDigitDay(7);
+		// FIRST DIGIT DAY
+		// NULL
+
 		break;
 
 	case IR_CODE_8:
@@ -340,6 +510,17 @@ void menu(int value) {
 		// FIRST DIGIT MINUTE
 
 		// NULL
+
+
+		// SECOND DIGIT MONTH
+		secondDigitMonth(8);
+		// FIRST DIGIT MONTH
+		// NULL
+		// SECOND DIGIT DAY
+		secondDigitDay(8);
+		// FIRST DIGIT DAY
+		// NULL
+
 		break;
 
 	case IR_CODE_9:
@@ -361,6 +542,16 @@ void menu(int value) {
 
 		// NULL
 
+
+		// SECOND DIGIT MONTH
+		secondDigitMonth(9);
+		// FIRST DIGIT MONTH
+		// NULL
+		// SECOND DIGIT DAY
+		secondDigitDay(9);
+		// FIRST DIGIT DAY
+		// NULL
+
 		break;
 
 	case IR_CODE_0:
@@ -372,7 +563,7 @@ void menu(int value) {
 
 		if (flagMenu == MENU_TIME_HOUR_SECOND_DIGIT) {
 
-			if (isInRange(hoursChange)) {
+			if (isInRangeHours(hoursChange)) {
 				hoursChange = 0;
 			}
 
@@ -402,6 +593,51 @@ void menu(int value) {
 		// FIRST DIGIT MINUTE
 
 		firstDigitMinute(0);
+
+
+
+
+
+
+
+		// SECOND DIGIT MONTH
+
+				if (flagMenu == MENU_DATE_MONTH_SECOND_DIGIT) {
+
+					if (isInRangeMonth(monthChange)) {
+						monthChange = 0;
+					}
+
+					setMonth(monthChange);
+					flagMenu = MENU_DATE_LEVEL;
+				}
+
+
+
+
+				// FIRST DIGIT MONTH
+
+				firstDigitMonth(0);
+
+				// SECOND DIGIT DAY
+				if (flagMenu == MENU_DATE_DAY_SECOND_DIGIT) {
+
+					if (isInRangeDay(dayChange)) {
+						dayChange=0;
+					}
+					setDay(dayChange);
+					flagMenu = MENU_DATE_DAY_FIRST_DIGIT;
+				}
+
+
+
+				// FIRST DIGIT DAY
+
+				firstDigitDay(0);
+
+
+
+
 
 		break;
 

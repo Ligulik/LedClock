@@ -17,11 +17,17 @@
 
 #define MENU_COLOR_LEVEL 1
 #define MENU_OFF 0
+
 #define MENU_TIME_LEVEL 1
 #define MENU_TIME_MINUTE_LEVEL 2
 #define MENU_TIME_MINUTE_SECOND_DIGIT 4
 #define MENU_TIME_HOUR_LEVEL 1
 #define MENU_TIME_HOUR_SECOND_DIGIT 3
+
+#define MENU_DATE_LEVEL 5
+#define MENU_DATE_MONTH_SECOND_DIGIT 6
+#define MENU_DATE_DAY_FIRST_DIGIT 7
+#define MENU_DATE_DAY_SECOND_DIGIT 8
 
 
 extern int flagColor;
@@ -30,12 +36,21 @@ extern int flagMetions;
 void menu(int);
 int TurnOnMenuMode(void);
 
-int isInRange(uint8_t entryData);
+int isInRangeHours(uint8_t entryData);
 int isInRangeMinute(uint8_t entryData);
 
 void firstDigitHour(uint8_t forAdd);
 void secondDigitHour(uint8_t forAdd);
 void firstDigitMinute(uint8_t forAdd);
 void secondDigitMinute(uint8_t forAdd);
+
+
+int isInRangeMonth(uint8_t entryData);
+int isInRangeDay(uint8_t entryData);
+
+void firstDigitMonth(uint8_t forAdd);
+void secondDigitMonth(uint8_t forAdd);
+void firstDigitDay(uint8_t forAdd);
+void secondDigitDay(uint8_t forAdd);
 
 #endif /* INC_MENU_H_ */

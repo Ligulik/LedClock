@@ -10,6 +10,8 @@
 
 #ifndef INC_SEVEN_SEGMENT_DRIVER_H_
 #define INC_SEVEN_SEGMENT_DRIVER_H_
+#define MENU_ON 1
+#define MENU_OFF 0
 
 
 
@@ -19,6 +21,12 @@
 struct manyNumber {
 	uint8_t firstNumber;
 	uint8_t secondNumber;
+};
+
+struct manyNumberCelcius{
+	uint8_t firstNumber;
+	uint8_t secondNumber;
+	uint8_t numberAfterPoint;
 };
 
 // Struktura przechowujaca kolor w posatci 3 osmiobitowych wartosci w kolejnosci RED,BLUE,GREEN
@@ -49,6 +57,7 @@ extern uint8_t six[12];
 extern uint8_t seven[6];
 extern uint8_t eight[14];
 extern uint8_t nine[12];
+uint8_t noDigit[1];
 
 // Flaga globalna
 flag volatile doubleDot;
@@ -89,13 +98,18 @@ void dwukropekStart(void);
 // Ustaw kropke
 void kropkaOn();
 
+//Ustaw znak stopni celcjusza
+void celsiusMark();
+
 //Wysteruj ledy godzinowe:
-void putHours(uint8_t hours);
+void putHours(uint8_t hours,int isMenuOn);
 //Wysteruj ledy minutowe:
 void putMinutes(uint8_t minutes);
 
 // Wlacz pełne wyswietlanie:
-void fullDisplayStart(void);
+void normalDisplayStart(void);
+//Wlacz wyswietlanie dwoch cyfr godziny podczas menu:
+void menuDisplayStart();
 
 void setHours(uint8_t);
 void setMinutes(uint8_t);
@@ -107,6 +121,13 @@ void setMinutes(uint8_t);
 void dateOnDisplay();
 void putDay(uint8_t day);
 void putMonth(uint8_t month);
+void setMonth(uint8_t month);
+void setDay(uint8_t day);
 
+// Temperatura:
+
+
+struct manyNumberCelcius destoryCelcius();
+void temperatureOnDisplay();
 
 #endif /* INC_SEVEN_SEGMENT_DRIVER_H_ */
