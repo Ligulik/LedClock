@@ -21,6 +21,7 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "iwdg.h"
 #include "rtc.h"
 #include "tim.h"
 #include "usart.h"
@@ -68,6 +69,7 @@
 
 // Flag for menu blinking
 int flag_blinker = 0;
+int one_second_flag=0;
 
 int flag_showCalendar_or_temperature = 0;
 
@@ -82,6 +84,48 @@ static void MX_NVIC_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// FUNTIONS:
+
+void normalWorkStart(void) {
+	if (flag_showCalendar_or_temperature < DATA_SHOW_DURATION
+			&& flag_showCalendar_or_temperature < TEMPERATURE_SHOW_DURATION) {
+		if (flag_showCalendar_or_temperature == 0) {
+			dotOff();
+			backToColorinMemory();
+			dwukropekTurnOn();
+			//Zapobieganie migotaniu
+			flag_showCalendar_or_temperature += 1;
+		}
+		normalDisplayStart();
+	}
+
+	// DISPLAY DATE IN SPECIFED TIME
+
+	else if (flag_showCalendar_or_temperature < TEMPERATURE_SHOW_DURATION) {
+		if (flag_showCalendar_or_temperature == DATA_SHOW_DURATION) {
+			dwukropekTurnOff();
+			// Zapobieganie migotaniu
+			flag_showCalendar_or_temperature = DATA_SHOW_DURATION + 1;
+			mixColor();
+		}
+		dotOn();
+		dateOnDisplay();
+	}
+
+	// DISPLAY TEMPERATURE IN SPECIFIED TIME
+
+	else if (flag_showCalendar_or_temperature == TEMPERATURE_SHOW_DURATION) {
+		displayStop();
+		ws2811_wait();
+		mixColor();
+		dotOn();
+		temperatureOnDisplay();
+		flag_showCalendar_or_temperature += 1;
+	} else if (flag_showCalendar_or_temperature < TEMPERATURE_SHOW_PERIOD) {
+		ws2811_update();
+	}
+}
 
 
 
@@ -98,25 +142,29 @@ int __io_putchar(int ch) {
 	return 1;
 }
 
+
+
+
 // Callbacks from interrupts
 
 // Interrupt from RTC after every one second
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc) {
 
-	if (TurnOnMenuMode() == MENU_OFF
-			&& flag_showCalendar_or_temperature < DATA_SHOW_DURATION) {
-		dwukropekStart();
-	} else {
 
-	}
 
-	// Obsluga flagi daty i temperatury
-	flag_showCalendar_or_temperature += 1;
-	if (flag_showCalendar_or_temperature == TEMPERATURE_SHOW_PERIOD) {
-		flag_showCalendar_or_temperature = 0;
-	}
+
 
 }
+
+void HAL_RTC_AlarmBEventCallback(RTC_HandleTypeDef *hrtc) {
+
+}
+
+
+
+
+
+
 
 // Interrupt for remote controler
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
@@ -138,11 +186,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim == &htim6)
 
 	{
+		// Hours blinking in hours menu mode:
 		if (TurnOnMenuMode() == MENU_TIME_LEVEL
 				|| TurnOnMenuMode() == MENU_TIME_HOUR_SECOND_DIGIT) {
 
 			if (flag_blinker == 1) {
-				ws2811_hourDisplayReset();
+				ws2811_firstAndSecondSegmentsDisplayReset();
 				flag_blinker = 0;
 			} else {
 				menuDisplayStart();
@@ -151,11 +200,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			}
 		}
 
+		// Minute blinking in minutes menu mode:
 		if (TurnOnMenuMode() == MENU_TIME_MINUTE_LEVEL
 				|| TurnOnMenuMode() == MENU_TIME_MINUTE_SECOND_DIGIT) {
 
 			if (flag_blinker == 1) {
-				ws2811_minuteDisplayReset();
+				ws2811_ThirdAndFourthSegmentsDisplayReset();
 				flag_blinker = 0;
 			} else {
 				menuDisplayStart();
@@ -164,213 +214,224 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			}
 		}
 
-
+		// Months blinking in months menu mode:
 		if (TurnOnMenuMode() == MENU_DATE_LEVEL
 				|| TurnOnMenuMode() == MENU_DATE_MONTH_SECOND_DIGIT) {
 
 			if (flag_blinker == 1) {
-				ws2811_minuteDisplayReset();
+				ws2811_ThirdAndFourthSegmentsDisplayReset();
 				flag_blinker = 0;
 			} else {
 				dateOnDisplay();
-				kropkaOn();
+				dotOn();
 				flag_blinker = 1;
 			}
 		}
 
+		// Days blinking in days menu mode:
 		if (TurnOnMenuMode() == MENU_DATE_DAY_FIRST_DIGIT
 				|| TurnOnMenuMode() == MENU_DATE_DAY_SECOND_DIGIT) {
 
 			if (flag_blinker == 1) {
-				ws2811_hourDisplayReset();
+				ws2811_firstAndSecondSegmentsDisplayReset();
 				flag_blinker = 0;
 			} else {
 				dateOnDisplay();
-				kropkaOn();
+				dotOn();
 				flag_blinker = 1;
 			}
+		}
+
+		// OKRES 1 skundy:
+		one_second_flag += 1;
+
+		if (one_second_flag == 4) {
+			if (TurnOnMenuMode() == MENU_OFF
+					&& flag_showCalendar_or_temperature < DATA_SHOW_DURATION) {
+				dwukropekStart();
+
+
+			} else {
+
+			}
+
+			// Obsluga flagi daty i temperatury
+			flag_showCalendar_or_temperature += 1;
+			if (flag_showCalendar_or_temperature == TEMPERATURE_SHOW_PERIOD) {
+				flag_showCalendar_or_temperature = 0;
+			}
+			one_second_flag = 0;
 		}
 
 	}
 }
 
+
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
-int main(void) {
-	/* USER CODE BEGIN 1 */
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
 
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_DMA_Init();
-	MX_TIM4_Init();
-	MX_RTC_Init();
-	MX_TIM2_Init();
-	MX_USART2_UART_Init();
-	MX_TIM6_Init();
-	MX_ADC1_Init();
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_TIM4_Init();
+  MX_RTC_Init();
+  MX_TIM2_Init();
+  MX_USART2_UART_Init();
+  MX_TIM6_Init();
+  MX_ADC1_Init();
+  MX_IWDG_Init();
 
-	/* Initialize interrupts */
-	MX_NVIC_Init();
-	/* USER CODE BEGIN 2 */
+  /* Initialize interrupts */
+  MX_NVIC_Init();
+  /* USER CODE BEGIN 2 */
 
-	// Inicjalizacja programu
+	//Initalization od program
 	ws2811_init();
 	HAL_TIM_Base_Start_IT(&htim6);
 	ir_init();
-	changeColor(RED);
+	HAL_PWR_EnableBkUpAccess();
 
-	/* USER CODE END 2 */
 
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
+	/*
+	 * --------------------------------------> CHANGE STANDARD COLOR
+	 */
+	backToColorinMemory();
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
 
 	while (1) {
 
 		// ZEGAR:
 
-		// NORMALNA PRACA - Wyswietlanie zegara
+		// NORMAL WORK
 
-		if (TurnOnMenuMode()
-				== 0&& flag_showCalendar_or_temperature < DATA_SHOW_DURATION && flag_showCalendar_or_temperature<TEMPERATURE_SHOW_DURATION) {
-			if (flag_showCalendar_or_temperature == 0) {
-				backToColor();
-				dwukropekTurnOn();
-				//Zapobieganie migotaniu
-				flag_showCalendar_or_temperature += 1;
-			}
-			normalDisplayStart();
+		if (TurnOnMenuMode() == 0) {
+			normalWorkStart();
 		}
 
-		// WYSWIETLANIE DATY CO OKRESLONY CZAS
-
-		else if (TurnOnMenuMode()
-				== 0&& flag_showCalendar_or_temperature<TEMPERATURE_SHOW_DURATION) {
-			if (flag_showCalendar_or_temperature == DATA_SHOW_DURATION) {
-				dwukropekTurnOff();
-				// Zapobieganie migotaniu
-				flag_showCalendar_or_temperature = DATA_SHOW_DURATION + 1;
-				mixColor();
-			}
-			kropkaOn();
-			dateOnDisplay();
-		}
-
-		else if (TurnOnMenuMode()
-				== 0&& flag_showCalendar_or_temperature == TEMPERATURE_SHOW_DURATION) {
-			ws2811_init();
-			mixColor();
-			kropkaOn();
-			temperatureOnDisplay();
-			flag_showCalendar_or_temperature += 1;
-		} else if (flag_showCalendar_or_temperature < TEMPERATURE_SHOW_PERIOD) {
-			ws2811_update();
-		}
-
-		// CZEKANIE NA SYGNAL Z PILOTA
+		// WAIT FOR SIGNAL FROM REMOTE CONTROLLER
 		int value = ir_read();
 		if (value != -1) {
 			menu(value);
 		}
 
+		// Turn on StanbyMode when it is time for it
+		TurnOnStanbyMode(17, 0, 0);
+
+		HAL_IWDG_Refresh(&hiwdg);
+
 	}
 
-	/* USER CODE END WHILE */
 
-	/* USER CODE BEGIN 3 */
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
 
 }
-/* USER CODE END 3 */
+  /* USER CODE END 3 */
+
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
-void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-	/** Configure the main internal regulator output voltage
-	 */
-	if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/** Configure LSE Drive Capability
-	 */
-	HAL_PWR_EnableBkUpAccess();
-	__HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
-	/** Initializes the RCC Oscillators according to the specified parameters
-	 * in the RCC_OscInitTypeDef structure.
-	 */
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE
-			| RCC_OSCILLATORTYPE_MSI;
-	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-	RCC_OscInitStruct.MSICalibrationValue = 0;
-	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
-	RCC_OscInitStruct.PLL.PLLM = 1;
-	RCC_OscInitStruct.PLL.PLLN = 40;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		Error_Handler();
-	}
-	/** Initializes the CPU, AHB and APB buses clocks
-	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  /** Configure the main internal regulator output voltage
+  */
+  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure LSE Drive Capability
+  */
+  HAL_PWR_EnableBkUpAccess();
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_LSE
+                              |RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+  RCC_OscInitStruct.MSICalibrationValue = 0;
+  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
+  RCC_OscInitStruct.PLL.PLLM = 1;
+  RCC_OscInitStruct.PLL.PLLN = 40;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
-		Error_Handler();
-	}
-	/** Enable MSI Auto calibration
-	 */
-	HAL_RCCEx_EnableMSIPLLMode();
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Enable MSI Auto calibration
+  */
+  HAL_RCCEx_EnableMSIPLLMode();
 }
 
 /**
- * @brief NVIC Configuration.
- * @retval None
- */
-static void MX_NVIC_Init(void) {
-	/* RTC_Alarm_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 4, 0);
-	HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
-	/* TIM2_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(TIM2_IRQn, 2, 0);
-	HAL_NVIC_EnableIRQ(TIM2_IRQn);
-	/* TIM6_DAC_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 3, 0);
-	HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* RTC_Alarm_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
+  /* TIM2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM2_IRQn, 2, 0);
+  HAL_NVIC_EnableIRQ(TIM2_IRQn);
+  /* TIM6_DAC_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
 }
 
 /* USER CODE BEGIN 4 */
@@ -378,16 +439,17 @@ static void MX_NVIC_Init(void) {
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
-void Error_Handler(void) {
-	/* USER CODE BEGIN Error_Handler_Debug */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
 	while (1) {
 	}
-	/* USER CODE END Error_Handler_Debug */
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT

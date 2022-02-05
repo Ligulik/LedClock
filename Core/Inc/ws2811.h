@@ -25,10 +25,12 @@ void ws2811_update(void);
 // Czekanie na zakonczenie transmisji:
 void ws2811_wait(void);
 
-// Zgaszenie wszystkich diod
-void ws2811_hourDisplayReset(void);
-void ws2811_minuteDisplayReset(void);
+// Zgaszenie wszystkich diod danych segmentow
+void ws2811_firstAndSecondSegmentsDisplayReset(void);
+void ws2811_ThirdAndFourthSegmentsDisplayReset(void);
 
+// Zgaszenie wszystkich diod:
+void ws2811_fullDisplayReset(void);
 
 
 

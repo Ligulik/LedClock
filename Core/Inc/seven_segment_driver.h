@@ -10,6 +10,13 @@
 
 #ifndef INC_SEVEN_SEGMENT_DRIVER_H_
 #define INC_SEVEN_SEGMENT_DRIVER_H_
+#pragma once
+
+#include "ws2811.h"
+#include "tim.h"
+#include "rtc.h"
+#include "temperature_sensor.h"
+
 #define MENU_ON 1
 #define MENU_OFF 0
 
@@ -90,13 +97,14 @@ uint8_t* numberToMatrix(int number);
 //	Kolory:
 void changeColor(struct colorRgb newColor);
 void mixColor();
-void backToColor();
+void backToColorinMemory();
 
 // wystartuj miganie dwukropka:
 void dwukropekStart(void);
 
 // Ustaw kropke
-void kropkaOn();
+void dotOn();
+void dotOff();
 
 //Ustaw znak stopni celcjusza
 void celsiusMark();
@@ -117,17 +125,17 @@ void setMinutes(uint8_t);
 
 // DATY
 
-
 void dateOnDisplay();
 void putDay(uint8_t day);
 void putMonth(uint8_t month);
 void setMonth(uint8_t month);
 void setDay(uint8_t day);
 
-// Temperatura:
-
+// TEMPERATURE:
 
 struct manyNumberCelcius destoryCelcius();
 void temperatureOnDisplay();
+
+void displayStop(void);
 
 #endif /* INC_SEVEN_SEGMENT_DRIVER_H_ */

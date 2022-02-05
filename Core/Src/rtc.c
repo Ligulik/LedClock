@@ -22,6 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 
+
 /* USER CODE END 0 */
 
 RTC_HandleTypeDef hrtc;
@@ -58,15 +59,76 @@ void MX_RTC_Init(void)
 
   /* USER CODE BEGIN Check_RTC_BKUP */
 
+	// After reset- download backup:
+
+  	RTC_TimeTypeDef time = { 0 };
+  	RTC_DateTypeDef date = { 0 };
+
+  	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+  	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+  	HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR5, ((date.Month << 8) | (date.Year)));
+  	HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR6, date.Date);
+  	HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR7, ((time.Hours << 8) | (time.Minutes)));
+  	HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR8, time.Seconds);
+
+
+	sDate.Month = (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR5) >> 8);
+	sDate.Year = (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR5));
+	sDate.Date = (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR6));
+
+	sTime.Hours =(HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR7) >> 8);
+	sTime.Minutes = (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR7));
+	sTime.Seconds = (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR8));
+	sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+	sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+
+	if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK) {
+		Error_Handler();
+	}
+
+	if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK) {
+		Error_Handler();
+	}
+
+	/** Enable the Alarm A
+	 */
+	sAlarm.AlarmTime.Hours = 8;
+	sAlarm.AlarmTime.Minutes = 0;
+	sAlarm.AlarmTime.Seconds = 0;
+	sAlarm.AlarmTime.SubSeconds = 0;
+	sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+	sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+	sAlarm.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY;
+	sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+	sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+	sAlarm.AlarmDateWeekDay = 1;
+	sAlarm.Alarm = RTC_ALARM_A;
+	if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK) {
+		Error_Handler();
+	}
+
+	/** Enable the Alarm B
+	 */
+	sAlarm.AlarmTime.Minutes = 16;
+	sAlarm.AlarmTime.Seconds = 15;
+	sAlarm.Alarm = RTC_ALARM_B;
+	if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK) {
+		Error_Handler();
+	}
+
+	return;
+
+
 
 
   /* USER CODE END Check_RTC_BKUP */
 
   /** Initialize RTC and set the Time and Date
   */
-  sTime.Hours = 00;
-  sTime.Minutes = 00;
-  sTime.Seconds = 00;
+  sTime.Hours = 12;
+  sTime.Minutes = 15;
+  sTime.Seconds = 45;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
   if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK)
@@ -75,8 +137,8 @@ void MX_RTC_Init(void)
   }
   sDate.WeekDay = RTC_WEEKDAY_SUNDAY;
   sDate.Month = RTC_MONTH_JANUARY;
-  sDate.Date = 00;
-  sDate.Year = 00;
+  sDate.Date = 16;
+  sDate.Year = 22;
 
   if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
   {
@@ -84,17 +146,25 @@ void MX_RTC_Init(void)
   }
   /** Enable the Alarm A
   */
-  sAlarm.AlarmTime.Hours = 23;
-  sAlarm.AlarmTime.Minutes = 59;
-  sAlarm.AlarmTime.Seconds = 55;
+  sAlarm.AlarmTime.Hours = 12;
+  sAlarm.AlarmTime.Minutes = 16;
+  sAlarm.AlarmTime.Seconds = 0;
   sAlarm.AlarmTime.SubSeconds = 0;
   sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  sAlarm.AlarmMask = RTC_ALARMMASK_ALL;
+  sAlarm.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY|RTC_ALARMMASK_SECONDS;
   sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
   sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
   sAlarm.AlarmDateWeekDay = 1;
   sAlarm.Alarm = RTC_ALARM_A;
+  if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Enable the Alarm B
+  */
+  sAlarm.AlarmTime.Minutes = 17;
+  sAlarm.Alarm = RTC_ALARM_B;
   if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK)
   {
     Error_Handler();
@@ -151,5 +221,31 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+
+void TurnOnStanbyMode(uint8_t hour, uint8_t minute, uint8_t second){
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
+
+
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+
+
+	if(time.Hours==hour && time.Minutes==minute && time.Seconds==second){
+
+		displayStop();
+		HAL_PWR_EnterSTANDBYMode();
+		}
+
+
+
+
+
+
+
+
+}
 
 /* USER CODE END 1 */

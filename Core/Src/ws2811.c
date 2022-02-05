@@ -65,7 +65,7 @@ void ws2811_init(void){
 
 }
 
-void ws2811_hourDisplayReset(void){
+void ws2811_firstAndSecondSegmentsDisplayReset(void){
 	int i;
 
 		// Wysłanie resetu:
@@ -86,7 +86,7 @@ void ws2811_hourDisplayReset(void){
 		ws2811_update();
 }
 
-void ws2811_minuteDisplayReset(void){
+void ws2811_ThirdAndFourthSegmentsDisplayReset(void){
 	int i;
 
 		// Wysłanie resetu:
@@ -106,6 +106,29 @@ void ws2811_minuteDisplayReset(void){
 		// Zacznij odswiezanie:
 		ws2811_update();
 }
+
+void ws2811_fullDisplayReset(void){
+	int i;
+
+			// Wysłanie resetu:
+			for(i=0;i<RESET_LEN;i++){
+				led_buffer[i]=0;
+			}
+
+			// Zgaszenie wszystkich diod:
+			for(i=0; i<24*LED_N;i++){
+				led_buffer[RESET_LEN+i]=BIT_0_TIME;
+			}
+
+			// Wypełnienie na koniec:
+
+			led_buffer[RESET_LEN+24*LED_N]=100;
+
+			// Zacznij odswiezanie:
+			ws2811_update();
+	}
+
+
 
 void ws2811_update(void){
 	HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_1, (uint32_t*)led_buffer, sizeof(led_buffer));

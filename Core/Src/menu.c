@@ -6,14 +6,13 @@
  */
 
 #include "menu.h"
-#include "rtc.h"
-#include "ws2811.h"
-#include "seven_segment_driver.h"
 
+// Global Variables
 
-
+// Levels of menu:
 int flagColor=0;
 int flagMenu=0;
+
 uint8_t minutesChange=0;
 uint8_t hoursChange=0;
 uint8_t dayChange=0;
@@ -29,7 +28,7 @@ int TurnOnMenuMode(void){
 }
 
 
-// Testy:
+// Tests:
 
 int isInRangeHours(uint8_t entryData){
 	if(entryData>23){
@@ -74,7 +73,7 @@ void colorMenu(struct colorRgb color){
 }
 
 
-// GODZINA
+// Funtions to chagne time in menu:
 
 
 void firstDigitHour(uint8_t forAdd){
@@ -119,7 +118,7 @@ void secondDigitMinute(uint8_t forAdd){
 }
 
 
-// DATA
+// functions to change data in menu
 
 
 void firstDigitMonth(uint8_t forAdd){
@@ -174,11 +173,12 @@ void secondDigitDay(uint8_t forAdd){
 
 /*
  *
- * Obluga przycisku pilota
+ * REMOTE CONTROLLER MENU
  *
  */
 void menu(int value) {
 
+	// Display via USART
 	printf("code=%02x\n", value);
 
 	RTC_TimeTypeDef time = {0};
@@ -188,54 +188,33 @@ void menu(int value) {
 	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
 
-	//uint8_t hoursAdd = time.Hours;
-	//uint8_t minutesAdd = time.Minutes;
-
-
-
 	switch (value) {
 	case IR_CODE_PLUS:
-//		minutesAdd = minutesAdd + 1;
-//		if (minutesAdd > 59) {
-//			hoursAdd = hoursAdd + 1;
-//			if (hoursAdd > 23) {
-//				hoursAdd = 0;
-//			}
-//			minutesAdd = 0;
-//		}
-//		time.Hours = hoursAdd;
-//		time.Minutes = minutesAdd;
-//		HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
 		break;
 	case IR_CODE_MINUS:
-//		minutesAdd = minutesAdd - 1;
-//		time.Hours = hoursAdd;
-//		time.Minutes = minutesAdd;
-//		HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-//		break;
+		flagMenu=15;
+
 	case IR_CODE_CANCEL:
 		flagColor = MENU_COLOR_LEVEL;
 		break;
 
-
-
 	case IR_CODE_MENU:
-		if(flagMenu==MENU_TIME_LEVEL || flagMenu==MENU_TIME_MINUTE_LEVEL || flagMenu==MENU_TIME_MINUTE_SECOND_DIGIT){
+		if (flagMenu == MENU_TIME_LEVEL || flagMenu == MENU_TIME_MINUTE_LEVEL
+				|| flagMenu == MENU_TIME_MINUTE_SECOND_DIGIT) {
 			mixColor();
-			flagMenu=MENU_DATE_DAY_FIRST_DIGIT;
-		}else{
-			backToColor();
-			flagMenu=MENU_TIME_LEVEL;
-			}
+			flagMenu = MENU_DATE_DAY_FIRST_DIGIT;
+		} else {
+			backToColorinMemory();
+			flagMenu = MENU_TIME_LEVEL;
+		}
 
 		break;
-
 
 	case IR_CODE_PLAY:
-		backToColor();
-		flagMenu=MENU_OFF;
+		dotOff();
+		backToColorinMemory();
+		flagMenu = MENU_OFF;
 		break;
-
 
 	case IR_CODE_FORWARD:
 		if (flagMenu == MENU_TIME_LEVEL
@@ -259,12 +238,6 @@ void menu(int value) {
 		}
 		break;
 
-
-
-
-
-
-
 	case IR_CODE_1:
 		// COLOR
 		colorMenu(BLUE);
@@ -284,8 +257,6 @@ void menu(int value) {
 		// FIRST DIGIT MINUTE
 		firstDigitMinute(10);
 
-
-
 		// SECOND DIGIT MONTH
 		secondDigitMonth(1);
 		// FIRST DIGIT MONTH
@@ -295,9 +266,7 @@ void menu(int value) {
 		// FIRST DIGIT DAY
 		firstDigitDay(10);
 
-
 		break;
-
 
 	case IR_CODE_2:
 		//COLOR
@@ -318,7 +287,6 @@ void menu(int value) {
 		// FIRST DIGIT MINUTE
 		firstDigitMinute(20);
 
-
 		// SECOND DIGIT MONTH
 		secondDigitMonth(2);
 		// FIRST DIGIT MONTH
@@ -329,7 +297,6 @@ void menu(int value) {
 		firstDigitDay(20);
 
 		break;
-
 
 	case IR_CODE_3:
 		// COLOR
@@ -350,7 +317,6 @@ void menu(int value) {
 		// FIRST DIGIT MINUTE
 		firstDigitMinute(30);
 
-
 		// SECOND DIGIT MONTH
 		secondDigitMonth(3);
 		// FIRST DIGIT MONTH
@@ -361,7 +327,6 @@ void menu(int value) {
 		firstDigitDay(30);
 
 		break;
-
 
 	case IR_CODE_4:
 
@@ -392,9 +357,7 @@ void menu(int value) {
 		// FIRST DIGIT DAY
 		// NULL
 
-
 		break;
-
 
 	case IR_CODE_5:
 		//COLOR
@@ -415,7 +378,6 @@ void menu(int value) {
 		// FIRST DIGIT MINUTE
 		firstDigitMinute(50);
 
-
 		// SECOND DIGIT MONTH
 		secondDigitMonth(5);
 		// FIRST DIGIT MONTH
@@ -425,10 +387,7 @@ void menu(int value) {
 		// FIRST DIGIT DAY
 		// NULL
 
-
 		break;
-
-
 
 	case IR_CODE_6:
 		//COLOR
@@ -448,7 +407,6 @@ void menu(int value) {
 		// FIRST DIGIT MINUTE
 
 		// NULL
-
 
 		// SECOND DIGIT MONTH
 		secondDigitMonth(6);
@@ -511,7 +469,6 @@ void menu(int value) {
 
 		// NULL
 
-
 		// SECOND DIGIT MONTH
 		secondDigitMonth(8);
 		// FIRST DIGIT MONTH
@@ -542,7 +499,6 @@ void menu(int value) {
 
 		// NULL
 
-
 		// SECOND DIGIT MONTH
 		secondDigitMonth(9);
 		// FIRST DIGIT MONTH
@@ -571,9 +527,6 @@ void menu(int value) {
 			flagMenu = MENU_TIME_LEVEL;
 		}
 
-
-
-
 		// FIRST DIGIT HOUR
 
 		firstDigitHour(0);
@@ -588,61 +541,43 @@ void menu(int value) {
 			flagMenu = MENU_TIME_MINUTE_LEVEL;
 		}
 
-
-
 		// FIRST DIGIT MINUTE
 
 		firstDigitMinute(0);
 
-
-
-
-
-
-
 		// SECOND DIGIT MONTH
 
-				if (flagMenu == MENU_DATE_MONTH_SECOND_DIGIT) {
+		if (flagMenu == MENU_DATE_MONTH_SECOND_DIGIT) {
 
-					if (isInRangeMonth(monthChange)) {
-						monthChange = 0;
-					}
+			if (isInRangeMonth(monthChange)) {
+				monthChange = 0;
+			}
 
-					setMonth(monthChange);
-					flagMenu = MENU_DATE_LEVEL;
-				}
+			setMonth(monthChange);
+			flagMenu = MENU_DATE_LEVEL;
+		}
 
+		// FIRST DIGIT MONTH
 
+		firstDigitMonth(0);
 
+		// SECOND DIGIT DAY
+		if (flagMenu == MENU_DATE_DAY_SECOND_DIGIT) {
 
-				// FIRST DIGIT MONTH
+			if (isInRangeDay(dayChange)) {
+				dayChange = 0;
+			}
+			setDay(dayChange);
+			flagMenu = MENU_DATE_DAY_FIRST_DIGIT;
+		}
 
-				firstDigitMonth(0);
+		// FIRST DIGIT DAY
 
-				// SECOND DIGIT DAY
-				if (flagMenu == MENU_DATE_DAY_SECOND_DIGIT) {
-
-					if (isInRangeDay(dayChange)) {
-						dayChange=0;
-					}
-					setDay(dayChange);
-					flagMenu = MENU_DATE_DAY_FIRST_DIGIT;
-				}
-
-
-
-				// FIRST DIGIT DAY
-
-				firstDigitDay(0);
-
-
-
-
+		firstDigitDay(0);
 
 		break;
 
 	}
-
 
 }
 

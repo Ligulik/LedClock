@@ -7,6 +7,7 @@
 
 #ifndef INC_MENU_H_
 #define INC_MENU_H_
+#pragma once
 
 #include "stm32l476xx.h"
 #include "ir.h"
@@ -31,26 +32,31 @@
 
 
 extern int flagColor;
-extern int flagMetions;
+extern int flagMenu;
 
 void menu(int);
+
+// Callback to main.c
 int TurnOnMenuMode(void);
 
-int isInRangeHours(uint8_t entryData);
-int isInRangeMinute(uint8_t entryData);
 
+// TIME
 void firstDigitHour(uint8_t forAdd);
 void secondDigitHour(uint8_t forAdd);
 void firstDigitMinute(uint8_t forAdd);
 void secondDigitMinute(uint8_t forAdd);
 
 
-int isInRangeMonth(uint8_t entryData);
-int isInRangeDay(uint8_t entryData);
-
+// DATE
 void firstDigitMonth(uint8_t forAdd);
 void secondDigitMonth(uint8_t forAdd);
 void firstDigitDay(uint8_t forAdd);
 void secondDigitDay(uint8_t forAdd);
+
+// TESTS:
+int isInRangeHours(uint8_t entryData);
+int isInRangeMinute(uint8_t entryData);
+int isInRangeMonth(uint8_t entryData);
+int isInRangeDay(uint8_t entryData);
 
 #endif /* INC_MENU_H_ */

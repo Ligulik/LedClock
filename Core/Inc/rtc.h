@@ -29,7 +29,8 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "tim.h"
+#include "seven_segment_driver.h"
 /* USER CODE END Includes */
 
 extern RTC_HandleTypeDef hrtc;
@@ -41,6 +42,8 @@ extern RTC_HandleTypeDef hrtc;
 void MX_RTC_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+
+void TurnOnStanbyMode(uint8_t hour, uint8_t minute, uint8_t second);
 
 /* USER CODE END Prototypes */
 

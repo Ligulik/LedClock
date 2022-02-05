@@ -13,7 +13,7 @@
 #include "main.h"
 
 
-// Funkcja producenta:
+// FUNTIONS
 
 double Thermister(uint32_t RawADC);
 

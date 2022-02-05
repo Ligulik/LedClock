@@ -7,8 +7,9 @@
 
 
 #include "temperature_sensor.h"
+#include <stdio.h>
 
-// Wzor ze strony producenta
+// FROM DATASHEET
 double Thermister(uint32_t RawADC) {
   double Temp;
     Temp = log(((10240000 / (1024-RawADC)) - 10000));
@@ -20,23 +21,23 @@ double Thermister(uint32_t RawADC) {
 
 
 
-// Pomiar temperatury
+// TEMPERATURE MEASURE
 double temperatureMeasure(){
-	// Kalibracja
+	// Calibration
 	HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 
-	// Start pomiaru:
+	// Measure start:
 	HAL_ADC_Start(&hadc1);
-	// Czekanie na wynik:
+	// Wait for result:
 	HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
 
-	// Pobranie wartosci napiecia z termistora
+	// get resistance value
 	uint32_t value=HAL_ADC_GetValue(&hadc1);
 
-	// Przeksztalcenie na temperature
+	// Transform to temperature
 	double temperature =Thermister(value);
 
-
+	// for USART comunnication
 	printf("ADC= %lu temperature %lf \n, ", value, temperature);
 
 	return temperature;
