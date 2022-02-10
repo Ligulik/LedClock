@@ -93,8 +93,8 @@ void MX_RTC_Init(void)
 
 	/** Enable the Alarm A
 	 */
-	sAlarm.AlarmTime.Hours = 8;
-	sAlarm.AlarmTime.Minutes = 0;
+	sAlarm.AlarmTime.Hours = 17;
+	sAlarm.AlarmTime.Minutes = 1;
 	sAlarm.AlarmTime.Seconds = 0;
 	sAlarm.AlarmTime.SubSeconds = 0;
 	sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;

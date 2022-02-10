@@ -30,6 +30,8 @@
 #define MENU_DATE_DAY_FIRST_DIGIT 7
 #define MENU_DATE_DAY_SECOND_DIGIT 8
 
+#define MENU_TEST_LEVEL 9
+
 
 extern int flagColor;
 extern int flagMenu;

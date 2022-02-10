@@ -21,7 +21,6 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
-#include "iwdg.h"
 #include "rtc.h"
 #include "tim.h"
 #include "usart.h"
@@ -37,6 +36,7 @@
 #include "temperature_sensor.h"
 #include <math.h>
 #include <stdio.h>
+
 
 /* USER CODE END Includes */
 
@@ -55,6 +55,17 @@
 // Duration and period of temperature show:
 #define TEMPERATURE_SHOW_PERIOD 35
 #define TEMPERATURE_SHOW_DURATION (TEMPERATURE_SHOW_PERIOD-5)
+
+// StandBy time:
+
+#define STANDBY_HOUR 17
+#define STANDBY_MINUTE 00
+#define STANDBY_SECOND 00
+
+// TRUE FALSE
+
+#define TRUE 1
+#define FALSE 0
 
 /* USER CODE END PD */
 
@@ -88,8 +99,7 @@ static void MX_NVIC_Init(void);
 // FUNTIONS:
 
 void normalWorkStart(void) {
-	if (flag_showCalendar_or_temperature < DATA_SHOW_DURATION
-			&& flag_showCalendar_or_temperature < TEMPERATURE_SHOW_DURATION) {
+	if (flag_showCalendar_or_temperature < DATA_SHOW_DURATION) {
 		if (flag_showCalendar_or_temperature == 0) {
 			dotOff();
 			backToColorinMemory();
@@ -106,7 +116,7 @@ void normalWorkStart(void) {
 		if (flag_showCalendar_or_temperature == DATA_SHOW_DURATION) {
 			dwukropekTurnOff();
 			// Zapobieganie migotaniu
-			flag_showCalendar_or_temperature = DATA_SHOW_DURATION + 1;
+			flag_showCalendar_or_temperature +=1;
 			mixColor();
 		}
 		dotOn();
@@ -115,16 +125,20 @@ void normalWorkStart(void) {
 
 	// DISPLAY TEMPERATURE IN SPECIFIED TIME
 
-	else if (flag_showCalendar_or_temperature == TEMPERATURE_SHOW_DURATION) {
-		displayStop();
-		ws2811_wait();
-		mixColor();
+	else if (flag_showCalendar_or_temperature <TEMPERATURE_SHOW_PERIOD) {
+		if (flag_showCalendar_or_temperature == TEMPERATURE_SHOW_DURATION) {
+			displayStop();
+			ws2811_wait();
+			mixColor();
+			dotOn();
+			temperatureOnDisplay(TRUE);
+			flag_showCalendar_or_temperature += 1;
+		}
 		dotOn();
-		temperatureOnDisplay();
-		flag_showCalendar_or_temperature += 1;
-	} else if (flag_showCalendar_or_temperature < TEMPERATURE_SHOW_PERIOD) {
-		ws2811_update();
+		temperatureOnDisplay(FALSE);
 	}
+
+
 }
 
 
@@ -243,24 +257,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		}
 
 		// OKRES 1 skundy:
-		one_second_flag += 1;
+		if (TurnOnMenuMode() != MENU_TEST_LEVEL) {
+			one_second_flag += 1;
 
-		if (one_second_flag == 4) {
-			if (TurnOnMenuMode() == MENU_OFF
-					&& flag_showCalendar_or_temperature < DATA_SHOW_DURATION) {
-				dwukropekStart();
+			if (one_second_flag == 4) {
+				if (TurnOnMenuMode() == MENU_OFF
+						&& flag_showCalendar_or_temperature < DATA_SHOW_DURATION) {
+					dwukropekStart();
 
+				} else {
 
-			} else {
+				}
 
+				// Obsluga flagi daty i temperatury
+				flag_showCalendar_or_temperature += 1;
+				if (flag_showCalendar_or_temperature == TEMPERATURE_SHOW_PERIOD) {
+					flag_showCalendar_or_temperature = 0;
+				}
+				one_second_flag = 0;
 			}
-
-			// Obsluga flagi daty i temperatury
-			flag_showCalendar_or_temperature += 1;
-			if (flag_showCalendar_or_temperature == TEMPERATURE_SHOW_PERIOD) {
-				flag_showCalendar_or_temperature = 0;
-			}
-			one_second_flag = 0;
 		}
 
 	}
@@ -304,7 +319,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM6_Init();
   MX_ADC1_Init();
-  MX_IWDG_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -315,6 +329,7 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim6);
 	ir_init();
 	HAL_PWR_EnableBkUpAccess();
+
 
 
 	/*
@@ -344,9 +359,15 @@ int main(void)
 		}
 
 		// Turn on StanbyMode when it is time for it
-		TurnOnStanbyMode(17, 0, 0);
+		TurnOnStanbyMode(STANDBY_HOUR, STANDBY_MINUTE, STANDBY_SECOND);
 
-		HAL_IWDG_Refresh(&hiwdg);
+		// Test segments:
+
+		if(TurnOnMenuMode()==MENU_TEST_LEVEL){
+			testSegments();
+		}
+
+
 
 	}
 
@@ -381,10 +402,8 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_LSE
-                              |RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSICalibrationValue = 0;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;

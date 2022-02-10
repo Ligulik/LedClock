@@ -192,7 +192,15 @@ void menu(int value) {
 	case IR_CODE_PLUS:
 		break;
 	case IR_CODE_MINUS:
-		flagMenu=15;
+		break;
+
+	case IR_CODE_TEST:
+		if(flagMenu==MENU_TEST_LEVEL){
+			flagMenu=MENU_OFF;
+		}else{
+			flagMenu=MENU_TEST_LEVEL;
+		}
+		break;
 
 	case IR_CODE_CANCEL:
 		flagColor = MENU_COLOR_LEVEL;

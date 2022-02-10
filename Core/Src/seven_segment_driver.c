@@ -28,8 +28,9 @@ uint8_t noDigit[1] = { 20 };
 flag volatile doubleDot = 0;
 
 struct colorRgb actualColor;
-// color memory
-//struct colorRgb colorInMemory;
+
+// temperature measure
+struct manyNumberCelcius temperatureResult;
 /*
  * -----------------------------------------> COLORS
  */
@@ -318,6 +319,8 @@ void setHours(uint8_t hours) {
 	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
+	HAL_Delay(100);
+
 	time.Hours = hours;
 	time.Seconds = 0;
 
@@ -333,7 +336,6 @@ void setMonth(uint8_t month) {
 	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
-	date.Year=22;
 	date.Month=month;
 	HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR5, ((date.Month << 8) | (date.Year)));
 
@@ -371,6 +373,8 @@ void normalDisplayStart() {
 	uint8_t hours = time.Hours;
 	uint8_t minutes = time.Minutes;
 
+
+
 	putHours(hours, MENU_OFF);
 	putMinutes(minutes);
 	ws2811_update();
@@ -407,19 +411,30 @@ void dateOnDisplay() {
 	ws2811_update();
 }
 
-void temperatureOnDisplay() {
-	struct manyNumberCelcius result = destoryCelcius();
-
-	firstSegment(numberToMatrix(result.firstNumber));
-	secondSegment(numberToMatrix(result.secondNumber));
-	thirdSegment(numberToMatrix(result.numberAfterPoint));
+void temperatureOnDisplay(int firstMeasure) {
+	if(firstMeasure==1){
+		temperatureResult = destoryCelcius();
+	}
+	firstSegment(numberToMatrix(temperatureResult.firstNumber));
+	secondSegment(numberToMatrix(temperatureResult.secondNumber));
+	thirdSegment(numberToMatrix(temperatureResult.numberAfterPoint));
 	celsiusMark();
 	ws2811_update();
 }
 
 void displayStop(void){
+	ws2811_wait();
 	ws2811_fullDisplayReset();
 	ws2811_wait();
+	ws2811_wait();
+}
+
+void testSegments(void){
+	firstSegment(eight);
+	secondSegment(eight);
+	thirdSegment(eight);
+	fourthSegment(eight);
+	dwukropekTurnOn();
 }
 
 

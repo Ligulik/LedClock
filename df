@@ -1,0 +1,29 @@
+[33mcommit a370a7804fb0592da21ce0a36f2811058c3fef12[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: Maciej <rysiu220398@gmail.com>
+Date:   Sat Feb 5 23:23:51 2022 +0100
+
+    Add StandbyMode, and Watchdog. Bug fixes 1
+
+[33mcommit 5ed4926c1cc2c1baeed2f7c71d710129e1ececcc[m
+Author: Maciej <rysiu220398@gmail.com>
+Date:   Wed Feb 2 16:21:33 2022 +0100
+
+    Add Temperature Measusurment
+
+[33mcommit d64f4fc2277a560503a49f24ce6d21f0306e780d[m
+Author: Maciej <rysiu220398@gmail.com>
+Date:   Wed Jan 26 21:35:26 2022 +0100
+
+    Sprawna godzina i data
+
+[33mcommit df0e58c8c1853946cecde63e30b2000fc0299aa6[m
+Author: Maciej <rysiu220398@gmail.com>
+Date:   Wed Jan 26 17:45:37 2022 +0100
+
+    Add Calendar show
+
+[33mcommit 6acb6e1822207ace3ed0ab5b1163c6191129a0ba[m
+Author: Maciej <rysiu220398@gmail.com>
+Date:   Tue Jan 25 17:04:08 2022 +0100
+
+    Initialize

@@ -16,6 +16,7 @@
 #include "tim.h"
 #include "rtc.h"
 #include "temperature_sensor.h"
+#include "main.h"
 
 #define MENU_ON 1
 #define MENU_OFF 0
@@ -68,6 +69,9 @@ uint8_t noDigit[1];
 
 // Flaga globalna
 flag volatile doubleDot;
+
+//Zapis pomiaru temperatury
+struct manyNumberCelcius temperatureResult;
 
 
 // FUNKCJE WEWNETRZNE:
@@ -134,8 +138,11 @@ void setDay(uint8_t day);
 // TEMPERATURE:
 
 struct manyNumberCelcius destoryCelcius();
-void temperatureOnDisplay();
+void temperatureOnDisplay(int firstMeasure);
 
+
+// Display
 void displayStop(void);
+void testSegments(void);
 
 #endif /* INC_SEVEN_SEGMENT_DRIVER_H_ */

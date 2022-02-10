@@ -7,9 +7,9 @@
 C_SRCS += \
 ../Core/Src/adc.c \
 ../Core/Src/dma.c \
+../Core/Src/ds18b20.c \
 ../Core/Src/gpio.c \
 ../Core/Src/ir.c \
-../Core/Src/iwdg.c \
 ../Core/Src/main.c \
 ../Core/Src/menu.c \
 ../Core/Src/rtc.c \
@@ -22,14 +22,15 @@ C_SRCS += \
 ../Core/Src/temperature_sensor.c \
 ../Core/Src/tim.c \
 ../Core/Src/usart.c \
+../Core/Src/wire.c \
 ../Core/Src/ws2811.c 
 
 OBJS += \
 ./Core/Src/adc.o \
 ./Core/Src/dma.o \
+./Core/Src/ds18b20.o \
 ./Core/Src/gpio.o \
 ./Core/Src/ir.o \
-./Core/Src/iwdg.o \
 ./Core/Src/main.o \
 ./Core/Src/menu.o \
 ./Core/Src/rtc.o \
@@ -42,14 +43,15 @@ OBJS += \
 ./Core/Src/temperature_sensor.o \
 ./Core/Src/tim.o \
 ./Core/Src/usart.o \
+./Core/Src/wire.o \
 ./Core/Src/ws2811.o 
 
 C_DEPS += \
 ./Core/Src/adc.d \
 ./Core/Src/dma.d \
+./Core/Src/ds18b20.d \
 ./Core/Src/gpio.d \
 ./Core/Src/ir.d \
-./Core/Src/iwdg.d \
 ./Core/Src/main.d \
 ./Core/Src/menu.d \
 ./Core/Src/rtc.d \
@@ -62,6 +64,7 @@ C_DEPS += \
 ./Core/Src/temperature_sensor.d \
 ./Core/Src/tim.d \
 ./Core/Src/usart.d \
+./Core/Src/wire.d \
 ./Core/Src/ws2811.d 
 
 
@@ -72,7 +75,7 @@ Core/Src/%.o: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/adc.d ./Core/Src/adc.o ./Core/Src/dma.d ./Core/Src/dma.o ./Core/Src/gpio.d ./Core/Src/gpio.o ./Core/Src/ir.d ./Core/Src/ir.o ./Core/Src/iwdg.d ./Core/Src/iwdg.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/menu.d ./Core/Src/menu.o ./Core/Src/rtc.d ./Core/Src/rtc.o ./Core/Src/seven_segment_driver.d ./Core/Src/seven_segment_driver.o ./Core/Src/stm32l4xx_hal_msp.d ./Core/Src/stm32l4xx_hal_msp.o ./Core/Src/stm32l4xx_it.d ./Core/Src/stm32l4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32l4xx.d ./Core/Src/system_stm32l4xx.o ./Core/Src/temperature_sensor.d ./Core/Src/temperature_sensor.o ./Core/Src/tim.d ./Core/Src/tim.o ./Core/Src/usart.d ./Core/Src/usart.o ./Core/Src/ws2811.d ./Core/Src/ws2811.o
+	-$(RM) ./Core/Src/adc.d ./Core/Src/adc.o ./Core/Src/dma.d ./Core/Src/dma.o ./Core/Src/ds18b20.d ./Core/Src/ds18b20.o ./Core/Src/gpio.d ./Core/Src/gpio.o ./Core/Src/ir.d ./Core/Src/ir.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/menu.d ./Core/Src/menu.o ./Core/Src/rtc.d ./Core/Src/rtc.o ./Core/Src/seven_segment_driver.d ./Core/Src/seven_segment_driver.o ./Core/Src/stm32l4xx_hal_msp.d ./Core/Src/stm32l4xx_hal_msp.o ./Core/Src/stm32l4xx_it.d ./Core/Src/stm32l4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32l4xx.d ./Core/Src/system_stm32l4xx.o ./Core/Src/temperature_sensor.d ./Core/Src/temperature_sensor.o ./Core/Src/tim.d ./Core/Src/tim.o ./Core/Src/usart.d ./Core/Src/usart.o ./Core/Src/wire.d ./Core/Src/wire.o ./Core/Src/ws2811.d ./Core/Src/ws2811.o
 
 .PHONY: clean-Core-2f-Src
 

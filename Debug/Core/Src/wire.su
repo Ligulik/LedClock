@@ -1,0 +1,7 @@
+wire.c:25:19:wire_reset	16	static
+wire.c:42:12:read_bit	16	static
+wire.c:54:9:wire_read	16	static
+wire.c:66:13:write_bit	16	static
+wire.c:81:6:wire_write	24	static
+wire.c:90:16:byte_crc	24	static
+wire.c:103:9:wire_crc	24	static
