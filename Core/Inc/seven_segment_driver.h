@@ -68,7 +68,7 @@ extern uint8_t nine[12];
 uint8_t noDigit[1];
 
 //alphabet:
-uint8_t alpha_S[10];
+extern uint8_t alpha_S[10];
 uint8_t alpha_L[6];
 uint8_t alpha_E[10];
 uint8_t alpha_A[12];
