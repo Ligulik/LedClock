@@ -36,6 +36,7 @@
 #include "temperature_sensor.h"
 #include <math.h>
 #include <stdio.h>
+#include "ds18b20.h"
 
 
 /* USER CODE END Includes */
@@ -79,10 +80,11 @@
 /* USER CODE BEGIN PV */
 
 // Flag for menu blinking
-int flag_blinker = 0;
-int one_second_flag=0;
+volatile int flag_blinker = 0;
+volatile int flag_one_second=0;
 
-int flag_showCalendar_or_temperature = 0;
+volatile int flag_showCalendar_or_temperature = 0;
+volatile int flag_info_time=0;
 
 /* USER CODE END PV */
 
@@ -119,6 +121,9 @@ void normalWorkStart(void) {
 			flag_showCalendar_or_temperature +=1;
 			mixColor();
 		}
+		if(flag_showCalendar_or_temperature==DATA_SHOW_DURATION+2){
+			ds18b20_start_measure(NULL);
+		}
 		dotOn();
 		dateOnDisplay();
 	}
@@ -146,15 +151,15 @@ void normalWorkStart(void) {
 // Funtions rewrite;
 
 // Printf function modifed to use with USART
-int __io_putchar(int ch) {
-	if (ch == '\n') {
-		__io_putchar('\r');
-	}
-
-	HAL_UART_Transmit(&huart2, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
-
-	return 1;
-}
+//int __io_putchar(int ch) {
+//	if (ch == '\n') {
+//		__io_putchar('\r');
+//	}
+//
+//	HAL_UART_Transmit(&huart2, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
+//
+//	return 1;
+//}
 
 
 
@@ -170,9 +175,9 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc) {
 
 }
 
-void HAL_RTC_AlarmBEventCallback(RTC_HandleTypeDef *hrtc) {
-
-}
+//void HAL_RTC_AlarmBEventCallback(RTC_HandleTypeDef *hrtc) {
+//
+//}
 
 
 
@@ -256,11 +261,55 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			}
 		}
 
-		// OKRES 1 skundy:
-		if (TurnOnMenuMode() != MENU_TEST_LEVEL) {
-			one_second_flag += 1;
+		// Years blinking in years mode:
 
-			if (one_second_flag == 4) {
+		if (TurnOnMenuMode() == MENU_YEAR_LEVEL
+				|| TurnOnMenuMode() == MENU_YEAR_FOURTH_DIGIT) {
+
+			firstSegment(two);
+			secondSegment(zero);
+			dotOff();
+
+
+			if (flag_blinker == 1) {
+				ws2811_ThirdAndFourthSegmentsDisplayReset();
+				flag_blinker = 0;
+			} else {
+				yearOnDisplay();
+				flag_blinker = 1;
+			}
+		}
+
+		// Sleep Info Display:
+
+		if(TurnOnMenuMode()==MENU_INFO_SLEEP){
+
+				sleepTimeSetDisplay();
+				flag_info_time+=1;
+				if(flag_info_time==12){
+					flag_info_time=0;
+					flagMenu=MENU_TIME_MINUTE_SECOND_DIGIT;
+				}
+
+		}
+
+		// Alarm Info Display:
+
+		if(TurnOnMenuMode()==MENU_INFO_ALARM){
+			alarmTimeSetDisplay();
+			flag_info_time += 1;
+			if (flag_info_time == 12) {
+				flag_info_time = 0;
+				flagMenu = MENU_TIME_MINUTE_SECOND_DIGIT;
+			}
+
+		}
+
+		// OKRES 1 sekundy:
+		if (TurnOnMenuMode() != MENU_TEST_LEVEL) {
+			flag_one_second += 1;
+
+			if (flag_one_second >= 4) {
 				if (TurnOnMenuMode() == MENU_OFF
 						&& flag_showCalendar_or_temperature < DATA_SHOW_DURATION) {
 					dwukropekStart();
@@ -271,11 +320,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 				// Obsluga flagi daty i temperatury
 				flag_showCalendar_or_temperature += 1;
-				if (flag_showCalendar_or_temperature == TEMPERATURE_SHOW_PERIOD) {
+				if (flag_showCalendar_or_temperature >= TEMPERATURE_SHOW_PERIOD) {
 					flag_showCalendar_or_temperature = 0;
 				}
-				one_second_flag = 0;
+				flag_one_second=0;
+
 			}
+
+
 		}
 
 	}
@@ -316,19 +368,31 @@ int main(void)
   MX_TIM4_Init();
   MX_RTC_Init();
   MX_TIM2_Init();
-  MX_USART2_UART_Init();
   MX_TIM6_Init();
   MX_ADC1_Init();
+  MX_USART3_UART_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
-	//Initalization od program
+
+
+
+
+
+	//Initalization of program
 	ws2811_init();
 	HAL_TIM_Base_Start_IT(&htim6);
 	ir_init();
 	HAL_PWR_EnableBkUpAccess();
+	// Temperature sensor
+
+	uint8_t ds1[DS18B20_ROM_CODE_SIZE];
+
+	if (ds18b20_read_address(ds1) != HAL_OK) {
+		Error_Handler();
+	}
 
 
 
@@ -336,6 +400,13 @@ int main(void)
 	 * --------------------------------------> CHANGE STANDARD COLOR
 	 */
 	backToColorinMemory();
+
+
+
+
+
+
+
 
   /* USER CODE END 2 */
 
@@ -350,6 +421,8 @@ int main(void)
 
 		if (TurnOnMenuMode() == 0) {
 			normalWorkStart();
+			// Turn on StanbyMode when it is time for it
+			TurnOnStanbyMode(sleepHour, sleepMinute, STANDBY_SECOND);
 		}
 
 		// WAIT FOR SIGNAL FROM REMOTE CONTROLLER
@@ -358,14 +431,13 @@ int main(void)
 			menu(value);
 		}
 
-		// Turn on StanbyMode when it is time for it
-		TurnOnStanbyMode(STANDBY_HOUR, STANDBY_MINUTE, STANDBY_SECOND);
 
 		// Test segments:
 
 		if(TurnOnMenuMode()==MENU_TEST_LEVEL){
 			testSegments();
 		}
+
 
 
 

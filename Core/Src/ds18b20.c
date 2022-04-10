@@ -1,50 +1,28 @@
 /*
  * ds18b20.c
  *
- *  Created on: Feb 10, 2022
+ *  Created on: Mar 30, 2022
  *      Author: komp
  */
 
 
 #include <string.h>
 #include "ds18b20.h"
-#include "wire.h"
+#include "one_wire.h"
 
-#define DS18B20_SCRATCHPAD_SIZE    9
-
-#define DS18B20_READ_ROM           0x33
-#define DS18B20_MATCH_ROM          0x55
-#define DS18B20_SKIP_ROM           0xCC
-
-#define DS18B20_CONVERT_T          0x44
-#define DS18B20_READ_SCRATCHPAD    0xBE
-
-HAL_StatusTypeDef ds18b20_init(void)
-{
-  return wire_init();
-}
+#define DS18B20_SCRATCHPAD_SIZE	9
+#define DS18B20_READ_ROM		0x33
+#define DS18B20_MATCH_ROM		0x55
+#define DS18B20_SKIP_ROM		0xCC
+#define DS18B20_CONVERT_T		0x44
+#define DS18B20_READ_SCRATCHPAD	0xBE
 
 
-HAL_StatusTypeDef ds18b20_read_address(uint8_t* rom_code)
-{
-  int i;
-  uint8_t crc;
+/*
+ * STATIC FUNCTIONS
+ */
 
-  if (wire_reset() != HAL_OK)
-    return HAL_ERROR;
-
-  wire_write(DS18B20_READ_ROM);
-
-  for (i = 0; i < DS18B20_ROM_CODE_SIZE; i++)
-    rom_code[i] = wire_read();
-
-  crc = wire_crc(rom_code, DS18B20_ROM_CODE_SIZE - 1);
-  if (rom_code[DS18B20_ROM_CODE_SIZE - 1] == crc)
-    return HAL_OK;
-  else
-    return HAL_ERROR;
-}
-
+//Wysylanie komendy
 static HAL_StatusTypeDef send_cmd(const uint8_t* rom_code, uint8_t cmd)
 {
   int i;
@@ -63,12 +41,7 @@ static HAL_StatusTypeDef send_cmd(const uint8_t* rom_code, uint8_t cmd)
   return HAL_OK;
 }
 
-
-HAL_StatusTypeDef ds18b20_start_measure(const uint8_t* rom_code)
-{
-  return send_cmd(rom_code, DS18B20_CONVERT_T);
-}
-
+// Odczytanie brudnopisu
 
 static HAL_StatusTypeDef ds18b20_read_scratchpad(const uint8_t* rom_code, uint8_t* scratchpad)
 {
@@ -88,6 +61,53 @@ static HAL_StatusTypeDef ds18b20_read_scratchpad(const uint8_t* rom_code, uint8_
     return HAL_ERROR;
 }
 
+
+
+
+/*
+ *NORMAL FUNCTIONS
+ */
+
+
+
+
+HAL_StatusTypeDef ds18b20_read_address(uint8_t* rom_code){
+
+	int i;
+	uint8_t crc;
+
+	//Wyslij reset
+	if(wire_reset()!=HAL_OK){
+		return HAL_ERROR;
+	}
+
+	// Wyslij polecenie odczytu kodu ROM
+
+	wire_write(DS18B20_READ_ROM);
+
+	// Zapisz 8 bajtowy ROM CODE
+
+	for(i=0;i<DS18B20_ROM_CODE_SIZE;i++){
+		rom_code[i]=wire_read();
+	}
+
+	// Policz sume kontrolna
+	crc=wire_crc(rom_code, DS18B20_ROM_CODE_SIZE-1);
+	if(rom_code[DS18B20_ROM_CODE_SIZE-1]==crc){
+		return HAL_OK;
+	}else{
+		return HAL_ERROR;
+	}
+}
+
+// Rozpocznij pomiar
+HAL_StatusTypeDef ds18b20_start_measure(const uint8_t* rom_code){
+	return send_cmd(rom_code, DS18B20_CONVERT_T);
+}
+
+
+// Pobranie temperauty i podanie jako float. 85 stopni to blad
+
 float ds18b20_get_temp(const uint8_t* rom_code)
 {
   uint8_t scratchpad[DS18B20_SCRATCHPAD_SIZE];
@@ -100,4 +120,8 @@ float ds18b20_get_temp(const uint8_t* rom_code)
 
   return temp / 16.0f;
 }
+
+
+
+
 

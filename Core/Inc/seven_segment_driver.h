@@ -67,6 +67,13 @@ extern uint8_t eight[14];
 extern uint8_t nine[12];
 uint8_t noDigit[1];
 
+//alphabet:
+uint8_t alpha_S[10];
+uint8_t alpha_L[6];
+uint8_t alpha_E[10];
+uint8_t alpha_A[12];
+uint8_t alpha_r[12];
+
 // Flaga globalna
 flag volatile doubleDot;
 
@@ -130,10 +137,13 @@ void setMinutes(uint8_t);
 // DATY
 
 void dateOnDisplay();
+void yearOnDisplay();
 void putDay(uint8_t day);
 void putMonth(uint8_t month);
+void putYear(uint8_t year);
 void setMonth(uint8_t month);
 void setDay(uint8_t day);
+void setYear(uint8_t year);
 
 // TEMPERATURE:
 
@@ -144,5 +154,9 @@ void temperatureOnDisplay(int firstMeasure);
 // Display
 void displayStop(void);
 void testSegments(void);
+
+// info
+void sleepTimeSetDisplay(void);
+void alarmTimeSetDisplay(void);
 
 #endif /* INC_SEVEN_SEGMENT_DRIVER_H_ */

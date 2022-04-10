@@ -21,6 +21,7 @@
 #include "rtc.h"
 
 /* USER CODE BEGIN 0 */
+#include "menu.h"
 
 
 /* USER CODE END 0 */
@@ -83,6 +84,8 @@ void MX_RTC_Init(void)
 	sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
 	sTime.StoreOperation = RTC_STOREOPERATION_RESET;
 
+
+
 	if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK) {
 		Error_Handler();
 	}
@@ -93,8 +96,12 @@ void MX_RTC_Init(void)
 
 	/** Enable the Alarm A
 	 */
-	sAlarm.AlarmTime.Hours = 17;
-	sAlarm.AlarmTime.Minutes = 1;
+	sAlarm.AlarmTime.Hours = (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR11) >> 8);
+	sAlarm.AlarmTime.Minutes = (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR11));
+	wakeUpHour=(HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR11) >> 8);
+	wakeUpMinute=(HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR11));
+	sleepHour=(HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR12) >> 8);
+	sleepMinute=(HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR12));
 	sAlarm.AlarmTime.Seconds = 0;
 	sAlarm.AlarmTime.SubSeconds = 0;
 	sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
@@ -108,14 +115,17 @@ void MX_RTC_Init(void)
 		Error_Handler();
 	}
 
+
+
+
 	/** Enable the Alarm B
 	 */
-	sAlarm.AlarmTime.Minutes = 16;
-	sAlarm.AlarmTime.Seconds = 15;
-	sAlarm.Alarm = RTC_ALARM_B;
-	if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK) {
-		Error_Handler();
-	}
+//	sAlarm.AlarmTime.Minutes = 16;
+//	sAlarm.AlarmTime.Seconds = 15;
+//	sAlarm.Alarm = RTC_ALARM_B;
+//	if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK) {
+//		Error_Handler();
+//	}
 
 	return;
 
@@ -137,7 +147,7 @@ void MX_RTC_Init(void)
   }
   sDate.WeekDay = RTC_WEEKDAY_SUNDAY;
   sDate.Month = RTC_MONTH_JANUARY;
-  sDate.Date = 16;
+  sDate.Date = 17;
   sDate.Year = 22;
 
   if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
@@ -223,21 +233,66 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
 /* USER CODE BEGIN 1 */
 
 
-void TurnOnStanbyMode(uint8_t hour, uint8_t minute, uint8_t second){
+void TurnOnStanbyMode(uint8_t hour, uint8_t minute, uint8_t second) {
 	RTC_TimeTypeDef time = { 0 };
 	RTC_DateTypeDef date = { 0 };
-
+	RTC_AlarmTypeDef sAlarm = { 0 };
 
 	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
+	if (time.Hours == hour && time.Minutes == minute
+			&& time.Seconds == second) {
+		sAlarm.AlarmTime.Hours = wakeUpHour;
+		sAlarm.AlarmTime.Minutes = wakeUpMinute;
+		sAlarm.AlarmTime.Seconds = 0;
+		sAlarm.AlarmTime.SubSeconds = 0;
+		sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+		sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+		sAlarm.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY;
+		sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+		sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+		sAlarm.AlarmDateWeekDay = 1;
+		sAlarm.Alarm = RTC_ALARM_A;
+		if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK) {
+			Error_Handler();
+		}
 
-
-	if(time.Hours==hour && time.Minutes==minute && time.Seconds==second){
-
+		HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR11,
+				((wakeUpHour << 8) | (wakeUpMinute)));
+		HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR12,
+						((sleepHour << 8) | (sleepMinute)));
 		displayStop();
 		HAL_PWR_EnterSTANDBYMode();
+	}
+
+	if (date.WeekDay == RTC_WEEKDAY_SATURDAY
+			|| date.WeekDay == RTC_WEEKDAY_SUNDAY) {
+		sAlarm.AlarmTime.Hours = wakeUpHour;
+		sAlarm.AlarmTime.Minutes = wakeUpMinute;
+		sAlarm.AlarmTime.Seconds = 0;
+		sAlarm.AlarmTime.SubSeconds = 0;
+		sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+		sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+		sAlarm.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY;
+		sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+		sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+		sAlarm.AlarmDateWeekDay = 1;
+		sAlarm.Alarm = RTC_ALARM_A;
+		if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK) {
+			Error_Handler();
 		}
+		if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK) {
+			Error_Handler();
+		}
+
+		HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR11,
+				((wakeUpHour << 8) | (wakeUpMinute)));
+		HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR12,
+							((sleepHour << 8) | (sleepMinute)));
+		displayStop();
+		HAL_PWR_EnterSTANDBYMode();
+	}
 
 
 

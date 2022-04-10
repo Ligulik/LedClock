@@ -30,11 +30,29 @@
 #define MENU_DATE_DAY_FIRST_DIGIT 7
 #define MENU_DATE_DAY_SECOND_DIGIT 8
 
+#define MENU_YEAR_LEVEL 11
+#define MENU_YEAR_FOURTH_DIGIT 12
+
 #define MENU_TEST_LEVEL 9
 
+#define MENU_INFO_SLEEP 20
+#define MENU_INFO_ALARM 21
 
-extern int flagColor;
-extern int flagMenu;
+
+extern volatile int flagColor;
+extern volatile int flagMenu;
+
+uint8_t minutesChange;
+uint8_t hoursChange;
+uint8_t dayChange;
+uint8_t monthChange;
+uint8_t yearChange;
+
+extern uint8_t sleepHour;
+extern uint8_t sleepMinute;
+extern uint8_t wakeUpHour;
+extern uint8_t wakeUpMinute;
+
 
 void menu(int);
 
@@ -54,11 +72,14 @@ void firstDigitMonth(uint8_t forAdd);
 void secondDigitMonth(uint8_t forAdd);
 void firstDigitDay(uint8_t forAdd);
 void secondDigitDay(uint8_t forAdd);
+void firstDigitYear(uint8_t forAdd);
+void secondDigitYear(uint8_t forAdd);
 
 // TESTS:
 int isInRangeHours(uint8_t entryData);
 int isInRangeMinute(uint8_t entryData);
 int isInRangeMonth(uint8_t entryData);
 int isInRangeDay(uint8_t entryData);
+int isInRangeYear(uint8_t entryData);
 
 #endif /* INC_MENU_H_ */

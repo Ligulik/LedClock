@@ -40,7 +40,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/adc.h ../Core/Inc/tim.h ../Core/Inc/usart.h \
  ../Core/Inc/gpio.h ../Core/Inc/ir.h \
  ../Drivers/CMSIS/Device/ST/STM32L4xx/Include/stm32l476xx.h \
- ../Core/Inc/menu.h ../Core/Inc/temperature_sensor.h
+ ../Core/Inc/menu.h ../Core/Inc/temperature_sensor.h \
+ ../Core/Inc/ds18b20.h
 
 ../Core/Inc/main.h:
 
@@ -147,3 +148,5 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/menu.h:
 
 ../Core/Inc/temperature_sensor.h:
+
+../Core/Inc/ds18b20.h:

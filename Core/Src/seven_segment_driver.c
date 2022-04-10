@@ -6,6 +6,7 @@
  */
 
 #include "seven_segment_driver.h"
+#include "ds18b20.h"
 
 /*
  * VARIABLES
@@ -21,9 +22,17 @@ uint8_t six[12] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 uint8_t seven[6] = { 4, 5, 10, 11, 12, 13 };
 uint8_t eight[14] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 uint8_t nine[12] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+
 // is use to turn of specified segment
 uint8_t noDigit[1] = { 20 };
 
+// alphabet
+
+uint8_t alpha_S[10]= { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+uint8_t alpha_L[6]={0,1,2,3,8,9};
+uint8_t alpha_E[10]={0,1,2,3,6,7,8,9,10,11};
+uint8_t alpha_A[12]={0,1,4,5,6,7,8,9,10,11,12,13};
+uint8_t alpha_r[12]={0,1,6,7};
 // is use to blink double dot
 flag volatile doubleDot = 0;
 
@@ -129,9 +138,9 @@ struct manyNumber destroy(uint8_t numberToDestroy) {
 
 struct manyNumberCelcius destoryCelcius() {
 	struct manyNumberCelcius temp;
-	double measureTemperature = temperatureMeasure();
-	int tempTotalValueTemperature = (int) temperatureMeasure();
-	double valueAfterPointTemperature;
+	float measureTemperature = ds18b20_get_temp(NULL);
+	int tempTotalValueTemperature = (int) ds18b20_get_temp(NULL);
+	float valueAfterPointTemperature;
 
 
 	temp.firstNumber = tempTotalValueTemperature / 10;
@@ -299,6 +308,13 @@ void putDay(uint8_t day) {
 	putHours(day, MENU_ON);
 }
 
+void putYear(uint8_t year){
+	firstSegment(two);
+	secondSegment(zero);
+	dotOff();
+	putMinutes(year);
+}
+
 void setMinutes(uint8_t minute) {
 	RTC_TimeTypeDef time = { 0 };
 	RTC_DateTypeDef date = { 0 };
@@ -357,6 +373,21 @@ void setDay(uint8_t day) {
 	HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
 }
 
+void setYear(uint8_t year){
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
+
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+	date.Year=year;
+
+	HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR5, ((date.Month << 8) | (date.Year)));
+
+	HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+}
+
 
 
 /*
@@ -411,6 +442,19 @@ void dateOnDisplay() {
 	ws2811_update();
 }
 
+void yearOnDisplay(){
+	RTC_TimeTypeDef time = { 0 };
+	RTC_DateTypeDef date = { 0 };
+
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+	uint8_t year = date.Year;
+
+	putYear(year);
+	ws2811_update();
+}
+
 void temperatureOnDisplay(int firstMeasure) {
 	if(firstMeasure==1){
 		temperatureResult = destoryCelcius();
@@ -437,5 +481,18 @@ void testSegments(void){
 	dwukropekTurnOn();
 }
 
+void sleepTimeSetDisplay(void){
+	firstSegment(alpha_S);
+	secondSegment(alpha_L);
+	thirdSegment(alpha_E);
+	fourthSegment(alpha_E);
+	dwukropekTurnOff();
+}
 
-
+void alarmTimeSetDisplay(void){
+	firstSegment(alpha_A);
+	secondSegment(alpha_L);
+	thirdSegment(alpha_A);
+	fourthSegment(alpha_r);
+	dwukropekTurnOff();
+}

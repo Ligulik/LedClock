@@ -34,7 +34,7 @@ Core/Src/ds18b20.o: ../Core/Src/ds18b20.c ../Core/Inc/ds18b20.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h \
- ../Core/Inc/wire.h
+ ../Core/Inc/one_wire.h
 
 ../Core/Inc/ds18b20.h:
 
@@ -108,4 +108,4 @@ Core/Src/ds18b20.o: ../Core/Src/ds18b20.c ../Core/Inc/ds18b20.h \
 
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h:
 
-../Core/Inc/wire.h:
+../Core/Inc/one_wire.h:

@@ -1,4 +1,4 @@
-rtc.c:31:6:MX_RTC_Init	104	static
-rtc.c:178:6:HAL_RTC_MspInit	152	static
-rtc.c:204:6:HAL_RTC_MspDeInit	16	static
-rtc.c:226:6:TurnOnStanbyMode	40	static
+rtc.c:32:6:MX_RTC_Init	104	static
+rtc.c:188:6:HAL_RTC_MspInit	152	static
+rtc.c:214:6:HAL_RTC_MspDeInit	16	static
+rtc.c:236:6:TurnOnStanbyMode	88	static

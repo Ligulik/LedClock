@@ -10,13 +10,19 @@
 // Global Variables
 
 // Levels of menu:
-int flagColor=0;
-int flagMenu=0;
+volatile int flagColor=0;
+volatile int flagMenu=0;
 
 uint8_t minutesChange=0;
 uint8_t hoursChange=0;
 uint8_t dayChange=0;
 uint8_t monthChange=0;
+uint8_t yearChange=0;
+
+uint8_t sleepHour;
+uint8_t sleepMinute;
+uint8_t wakeUpHour;
+uint8_t wakeUpMinute;
 
 
 
@@ -58,6 +64,14 @@ int isInRangeMonth(uint8_t entryData){
 
 int isInRangeDay(uint8_t entryData){
 	if(entryData>31){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+int isInRangeYear(uint8_t entryData){
+	if(entryData>100){
 		return 1;
 	}else{
 		return 0;
@@ -165,6 +179,26 @@ void secondDigitDay(uint8_t forAdd){
 	}
 }
 
+void firstDigitYear(uint8_t forAdd){
+	if (flagMenu == MENU_YEAR_LEVEL) {
+		yearChange = forAdd;
+		flagMenu = MENU_YEAR_FOURTH_DIGIT;
+	}
+}
+
+void secondDigitYear(uint8_t forAdd){
+	if (flagMenu == MENU_YEAR_FOURTH_DIGIT) {
+		yearChange += forAdd;
+
+		if (isInRangeYear(yearChange)) {
+			yearChange = 0;
+		}
+		setYear(yearChange);
+		flagMenu = MENU_YEAR_LEVEL;
+	}
+}
+
+
 
 
 
@@ -179,7 +213,7 @@ void secondDigitDay(uint8_t forAdd){
 void menu(int value) {
 
 	// Display via USART
-	printf("code=%02x\n", value);
+	//printf("code=%02x\n", value);
 
 	RTC_TimeTypeDef time = {0};
 	RTC_DateTypeDef date = {0};
@@ -190,8 +224,18 @@ void menu(int value) {
 
 	switch (value) {
 	case IR_CODE_PLUS:
+		if(flagMenu==MENU_TIME_MINUTE_SECOND_DIGIT || flagMenu==MENU_TIME_MINUTE_LEVEL){
+			sleepHour=time.Hours;
+			sleepMinute=time.Minutes;
+			flagMenu=MENU_INFO_SLEEP;
+		}
 		break;
 	case IR_CODE_MINUS:
+		if(flagMenu==MENU_TIME_MINUTE_SECOND_DIGIT || flagMenu==MENU_TIME_MINUTE_LEVEL){
+					wakeUpHour=time.Hours;
+					wakeUpMinute=time.Minutes;
+					flagMenu=MENU_INFO_ALARM;
+				}
 		break;
 
 	case IR_CODE_TEST:
@@ -211,7 +255,11 @@ void menu(int value) {
 				|| flagMenu == MENU_TIME_MINUTE_SECOND_DIGIT) {
 			mixColor();
 			flagMenu = MENU_DATE_DAY_FIRST_DIGIT;
-		} else {
+		}
+		else if(flagMenu==MENU_DATE_LEVEL|| flagMenu==MENU_DATE_MONTH_SECOND_DIGIT || flagMenu==MENU_DATE_DAY_FIRST_DIGIT || flagMenu==MENU_DATE_DAY_SECOND_DIGIT){
+			mixColor();
+			flagMenu=MENU_YEAR_LEVEL;
+		}else {
 			backToColorinMemory();
 			flagMenu = MENU_TIME_LEVEL;
 		}
@@ -273,6 +321,10 @@ void menu(int value) {
 		secondDigitDay(1);
 		// FIRST DIGIT DAY
 		firstDigitDay(10);
+		// SECOND DIGIT YEAR
+		secondDigitYear(1);
+		// FIRST SECOND YEAR
+		firstDigitYear(10);
 
 		break;
 
@@ -303,7 +355,10 @@ void menu(int value) {
 		secondDigitDay(2);
 		// FIRST DIGIT DAY
 		firstDigitDay(20);
-
+		// SECOND DIGIT YEAR
+		secondDigitYear(2);
+		// FIRST SECOND YEAR
+		firstDigitYear(20);
 		break;
 
 	case IR_CODE_3:
@@ -333,6 +388,11 @@ void menu(int value) {
 		secondDigitDay(3);
 		// FIRST DIGIT DAY
 		firstDigitDay(30);
+		// SECOND DIGIT YEAR
+		secondDigitYear(3);
+		// FIRST SECOND YEAR
+		firstDigitYear(30);
+
 
 		break;
 
@@ -364,6 +424,10 @@ void menu(int value) {
 		secondDigitDay(4);
 		// FIRST DIGIT DAY
 		// NULL
+		// SECOND DIGIT YEAR
+		secondDigitYear(4);
+		// FIRST SECOND YEAR
+		firstDigitYear(40);
 
 		break;
 
@@ -394,6 +458,10 @@ void menu(int value) {
 		secondDigitDay(5);
 		// FIRST DIGIT DAY
 		// NULL
+		// SECOND DIGIT YEAR
+		secondDigitYear(5);
+		// FIRST SECOND YEAR
+		firstDigitYear(50);
 
 		break;
 
@@ -424,6 +492,10 @@ void menu(int value) {
 		secondDigitDay(6);
 		// FIRST DIGIT DAY
 		// NULL
+		// SECOND DIGIT YEAR
+		secondDigitYear(6);
+		// FIRST SECOND YEAR
+		firstDigitYear(60);
 
 		break;
 
@@ -455,6 +527,10 @@ void menu(int value) {
 		secondDigitDay(7);
 		// FIRST DIGIT DAY
 		// NULL
+		// SECOND DIGIT YEAR
+		secondDigitYear(7);
+		// FIRST SECOND YEAR
+		firstDigitYear(70);
 
 		break;
 
@@ -485,7 +561,10 @@ void menu(int value) {
 		secondDigitDay(8);
 		// FIRST DIGIT DAY
 		// NULL
-
+		// SECOND DIGIT YEAR
+		secondDigitYear(8);
+		// FIRST SECOND YEAR
+		firstDigitYear(80);
 		break;
 
 	case IR_CODE_9:
@@ -515,7 +594,10 @@ void menu(int value) {
 		secondDigitDay(9);
 		// FIRST DIGIT DAY
 		// NULL
-
+		// SECOND DIGIT YEAR
+		secondDigitYear(9);
+		// FIRST SECOND YEAR
+		firstDigitYear(90);
 		break;
 
 	case IR_CODE_0:
@@ -582,6 +664,21 @@ void menu(int value) {
 		// FIRST DIGIT DAY
 
 		firstDigitDay(0);
+
+		// SECOND DIGIT YEAR
+		if (flagMenu == MENU_YEAR_FOURTH_DIGIT) {
+
+			if (isInRangeYear(yearChange)) {
+				yearChange = 0;
+			}
+			setYear(yearChange);
+			flagMenu = MENU_YEAR_LEVEL;
+		}
+
+		//FIRST DIGIT YEAR
+
+		firstDigitYear(0);
+
 
 		break;
 
