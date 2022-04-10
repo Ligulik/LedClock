@@ -157,6 +157,7 @@ void normalWorkStart(void) {
 //	}
 //
 //	HAL_UART_Transmit(&huart2, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
+// raz dwa
 //
 //	return 1;
 //}
@@ -164,7 +165,7 @@ void normalWorkStart(void) {
 
 
 
-// Callbacks from interrupts
+// Callbacks from interrupts:
 
 // Interrupt from RTC after every one second
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc) {
@@ -178,11 +179,6 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc) {
 //void HAL_RTC_AlarmBEventCallback(RTC_HandleTypeDef *hrtc) {
 //
 //}
-
-
-
-
-
 
 
 // Interrupt for remote controler
